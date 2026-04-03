@@ -17,8 +17,7 @@ A universal prompt that instructs any AI agent (Copilot, Cursor, Trae, Claude, e
 ## Generated Structure / 生成结构 / 生成される構造
 
 ```
-.ai-instructions              # Entry point for AI agents
-AGENTS.md                     # Project overview (≤30 lines)
+AGENTS.md                     # Project overview + navigation (≤300 lines, auto-loaded)
 MEMORY.md                     # Development progress tracking
 .ai/
   instructions/               # Coding standards with frontmatter
@@ -43,7 +42,7 @@ MEMORY.md                     # Development progress tracking
 
 ```
 .github/                       # Copilot adapter (thin entry layer)
-  copilot-instructions.md       #   Repo-level: read AGENTS.md + .ai-instructions
+  copilot-instructions.md       #   Repo-level: read AGENTS.md (overview + navigation)
   instructions/
     frontend.instructions.md    #   Path-level: points to .ai/instructions/frontend.md
     backend.instructions.md     #   Path-level: points to .ai/instructions/backend.md
@@ -51,7 +50,7 @@ MEMORY.md                     # Development progress tracking
 
 .cursor/                       # Cursor adapter (thin entry layer)
   rules/
-    00-core.mdc                 #   Always-on: read AGENTS.md + .ai-instructions
+    00-core.mdc                 #   Always-on: read AGENTS.md (overview + navigation)
     frontend.mdc                #   Glob-scoped: points to .ai/instructions/frontend.md
     backend.mdc                 #   Glob-scoped: points to .ai/instructions/backend.md
     tests.mdc                   #   Glob-scoped: points to .ai/instructions/tests.md
