@@ -1,0 +1,131 @@
+You are an AI engineering expert. Build a complete AI collaboration documentation system for the current project.
+
+## Goal
+
+Establish a documentation structure in the project that enables AI Agents (cross-editor: Copilot, Cursor, Trae, etc.) to collaborate efficiently. This includes: project guide, coding standards, reusable skills, custom Agents, Prompt templates, and development progress tracking.
+
+## Requirements
+
+### Step 1: Analyze the Project
+
+First, read through the project source code and existing documentation to understand:
+- Project purpose and core responsibilities
+- Tech stack (languages, frameworks, build tools)
+- Module breakdown and their responsibilities
+- Existing coding conventions and architectural decisions
+- Current project phase (initial build / active development / maintenance)
+- Recurring development operation patterns
+
+### Step 2: Create File Structure
+
+Create files following this structure, all under the `.ai/` directory:
+
+```
+.ai-instructions              — Guide entry point (first file AI reads)
+AGENTS.md                     — Project overview (root directory, concise, under 30 lines)
+MEMORY.md                     — Development progress tracking (root directory)
+.ai/
+  instructions/               — Domain-specific coding standards (multiple files as needed)
+  docs/                       — Feature design and tracking documents
+  skills/                     — Reusable operation templates
+    <skill-name>/SKILL.md
+  agents/                     — Custom Agents
+    <name>.agent.md
+  prompts/                    — Prompt shortcut templates
+    <name>.prompt.md
+```
+
+### Step 3: Format Requirements for Each File
+
+#### AGENTS.md (root directory)
+- Title: `# Project Guidelines`
+- Include only: project positioning (1-2 sentences), tech stack (list), module overview (table), core conventions (4-5 items)
+- Move detailed content to `.ai/docs/`; AGENTS.md serves only as an index
+- Keep under 30 lines — it's loaded in full for every conversation
+
+#### .ai-instructions (guide entry point)
+Must include these sections:
+1. **Required reading**: List AGENTS.md → MEMORY.md → `.ai/instructions/` full directory, in order
+2. **On-demand reading**: Table listing docs directory files and trigger conditions
+3. **Available skills**: Table listing skills and their applicable scenarios
+4. **Available Agents**: Table listing agents with roles/tool restrictions
+5. **Available Prompts**: Table listing prompts and their purposes
+6. **Documentation structure**: Directory tree
+7. **Mandatory workflow**: What to read before starting, what must be updated after finishing
+8. **Language requirements**
+
+#### .ai/instructions/*.md (coding standards)
+- Each file must have YAML frontmatter:
+  ```yaml
+  ---
+  description: "Use when: trigger keyword description"
+  applyTo: "glob pattern"    # Optional, auto-attach by file type
+  ---
+  ```
+- One file per concern (backend/frontend/API/testing — don't mix)
+- Content should be concise and actionable; use lists, not long paragraphs
+- For multi-language projects, split by language or domain
+- Must create an `ai-workflow.md` defining documentation update standards
+
+#### .ai/skills/<name>/SKILL.md (skill templates)
+- Must have YAML frontmatter:
+  ```yaml
+  ---
+  name: skill-name           # Must match directory name
+  description: "Use when: keyword-rich trigger description"
+  argument-hint: "input hint"
+  ---
+  ```
+- Body includes: applicable scenarios, project conventions (with code examples), step-by-step procedures, key constraints
+- Extract recurring operation patterns from the project as skills
+
+#### .ai/agents/<name>.agent.md (custom Agents)
+- Must have YAML frontmatter:
+  ```yaml
+  ---
+  description: "Use when: trigger description"
+  name: "agent-name"
+  tools: [read, search]      # Minimal tool set
+  ---
+  ```
+- Body defines: role positioning, scope of responsibilities, constraints (what NOT to do), specific checklists or work steps
+- Create at least one read-only review Agent (tools: [read, search])
+
+#### .ai/prompts/<name>.prompt.md (Prompt templates)
+- Must have YAML frontmatter:
+  ```yaml
+  ---
+  description: "One-line purpose description"
+  agent: "agent"
+  tools: [read, edit, search]
+  ---
+  ```
+- Body uses Markdown links to reference related instructions and SKILL.md files
+- Create Prompts for the 3-5 most common operations in the project
+
+#### MEMORY.md (development progress)
+- Include: current phase, completed items, AI engineering status checklist, follow-up suggestions
+- Mark last update date in file header
+- Keep under 100 lines; archive excess to `.ai/docs/changelog.md`
+
+### Step 4: Content Quality Checklist
+
+After creation, self-check:
+- [ ] AGENTS.md ≤ 30 lines, no detailed module descriptions
+- [ ] All instructions/skills/agents/prompts have correct YAML frontmatter
+- [ ] Skills' `name` field matches their directory name
+- [ ] All descriptions use "Use when: ..." format with rich keywords
+- [ ] Every file listed in .ai-instructions actually exists
+- [ ] MEMORY.md doesn't reference non-existent files
+- [ ] No content duplication between instructions (especially with AGENTS.md)
+- [ ] Each Agent's tools are the minimal necessary set, not all tools
+- [ ] Mandatory workflow requires updating MEMORY.md after completion
+
+### Universal Principles
+
+- **Concise first**: AGENTS.md and instructions consume context window — shorter is better
+- **Keyword-driven discovery**: description is the sole basis for Agent file discovery — keywords must be accurate
+- **One file, one concern**: Don't mix test standards with API standards
+- **Show don't tell**: Use brief code examples rather than long paragraphs
+- **Link don't embed**: Put detailed content in docs; main files only index
+- **Cross-editor compatible**: Don't rely on editor-specific mechanisms (like Hooks); file formats must be universal

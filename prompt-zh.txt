@@ -1,0 +1,131 @@
+你是一个 AI 工程化专家。请为当前项目搭建完整的 AI 协作文档体系。
+
+## 目标
+
+在项目中建立一套让 AI Agent（跨编辑器：Copilot、Cursor、Trae 等）高效协作的文档结构，包括：项目路引、编码规范、可复用技能、自定义 Agent、Prompt 模板和开发进度追踪。
+
+## 要求
+
+### 第一步：分析项目
+
+先通读项目源码和已有文档，弄清楚：
+- 项目定位和核心职责
+- 技术栈（语言、框架、构建工具）
+- 模块划分和各自职责
+- 已有的编码约定和架构决策
+- 项目当前处于什么阶段（初建/开发中/维护）
+- 有哪些反复出现的开发操作模式
+
+### 第二步：创建文件结构
+
+按以下结构创建文件，所有文件放在 `.ai/` 目录下：
+
+```
+.ai-instructions              — 路引入口（AI 读的第一个文件）
+AGENTS.md                     — 项目概述（根目录，精简，30行以内）
+MEMORY.md                     — 开发进度追踪（根目录）
+.ai/
+  instructions/               — 分领域编码规范（按需多个文件）
+  docs/                       — 功能设计与跟踪文档
+  skills/                     — 可复用操作模板
+    <skill-name>/SKILL.md
+  agents/                     — 自定义 Agent
+    <name>.agent.md
+  prompts/                    — Prompt 快捷模板
+    <name>.prompt.md
+```
+
+### 第三步：各文件的格式要求
+
+#### AGENTS.md（根目录）
+- 标题用 `# Project Guidelines`
+- 只包含：项目定位（1-2句）、技术栈（列表）、模块一览（表格）、核心约定（4-5条）
+- 详细内容拆到 `.ai/docs/` 中，AGENTS.md 只做索引
+- 控制在 30 行以内，因为每次对话都会全量加载
+
+#### .ai-instructions（路引入口）
+必须包含以下章节：
+1. **必读文件**：按顺序列出 AGENTS.md → MEMORY.md → `.ai/instructions/` 全目录
+2. **按需阅读**：表格列出 docs 目录下的文件和触发条件
+3. **可用技能**：表格列出 skills 目录下的技能和适用场景
+4. **可用 Agent**：表格列出 agents 和职责/工具限制
+5. **可用 Prompt**：表格列出 prompts 和用途
+6. **文档目录结构**：目录树
+7. **强制工作流**：开始前读什么，完成后必须更新什么
+8. **语言要求**：中文
+
+#### .ai/instructions/*.md（编码规范）
+- 每个文件必须有 YAML frontmatter：
+  ```yaml
+  ---
+  description: "Use when: 触发关键词描述"
+  applyTo: "glob 模式"    # 可选，按文件类型自动附加
+  ---
+  ```
+- 一个文件只管一个关注点（后端/前端/接口/测试，不要混写）
+- 内容简洁可执行，用列表不用长段落
+- 如果项目是多语言的，按语言或领域拆分
+- 必须创建一个 `ai-workflow.md` 定义文档更新规范
+
+#### .ai/skills/<name>/SKILL.md（技能模板）
+- 必须有 YAML frontmatter：
+  ```yaml
+  ---
+  name: skill-name           # 必须和目录名一致
+  description: "Use when: 关键词丰富的触发描述"
+  argument-hint: "输入提示"
+  ---
+  ```
+- 正文包含：适用场景、项目约定（含代码示例）、操作步骤、关键约束
+- 从项目中提取重复出现的操作模式作为技能
+
+#### .ai/agents/<name>.agent.md（自定义 Agent）
+- 必须有 YAML frontmatter：
+  ```yaml
+  ---
+  description: "Use when: 触发描述"
+  name: "agent-name"
+  tools: [read, search]      # 最小工具集
+  ---
+  ```
+- 正文定义：角色定位、职责范围、约束（不做什么）、具体检查清单或工作步骤
+- 最少创建一个只读审查 Agent（tools: [read, search]）
+
+#### .ai/prompts/<name>.prompt.md（Prompt 模板）
+- 必须有 YAML frontmatter：
+  ```yaml
+  ---
+  description: "一句话描述用途"
+  agent: "agent"
+  tools: [read, edit, search]
+  ---
+  ```
+- 正文用 Markdown 链接引用相关的 instructions 和 SKILL.md
+- 为项目中最常见的 3-5 个操作创建 Prompt
+
+#### MEMORY.md（开发进度）
+- 包含：当前阶段、已完成事项、AI工程化状态清单、后续建议
+- 文件头标注最后更新日期
+- 控制在 100 行以内，超出归档到 `.ai/docs/changelog.md`
+
+### 第四步：内容质量检查清单
+
+创建完毕后自查：
+- [ ] AGENTS.md ≤ 30 行，没有详细模块描述
+- [ ] 所有 instructions/skills/agents/prompts 都有正确的 YAML frontmatter
+- [ ] skills 的 `name` 字段和目录名一致
+- [ ] description 都用 "Use when: ..." 格式，关键词丰富
+- [ ] .ai-instructions 中列出的每个文件都实际存在
+- [ ] MEMORY.md 中没有引用不存在的文件
+- [ ] instructions 之间没有内容重复（尤其和 AGENTS.md）
+- [ ] 每个 Agent 的 tools 是最小必要集，不是全部工具
+- [ ] 强制工作流中要求完成后更新 MEMORY.md
+
+### 通用原则
+
+- **精简优先**：AGENTS.md 和 instructions 会占用上下文窗口，越短越好
+- **关键词驱动发现**：description 是 Agent 发现文件的唯一依据，关键词要准
+- **一个文件一个关注点**：不要把测试规范和 API 规范混在一起
+- **Show don't tell**：用简短代码示例而非长段落解释
+- **Link don't embed**：详细内容放 docs，主文件只索引
+- **跨编辑器兼容**：不依赖特定编辑器的机制（如 Hooks），文件格式通用
