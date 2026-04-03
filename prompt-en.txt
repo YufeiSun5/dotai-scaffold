@@ -8,7 +8,16 @@ Establish a documentation structure in the project that enables AI Agents (cross
 
 ### Step 1: Analyze the Project
 
-First, read through the project source code and existing documentation to understand:
+#### 1.1 Scan Boundaries
+
+Define the analysis scope first:
+- **Ignore directories**: `node_modules`, `dist`, `build`, `.next`, `coverage`, `vendor`, `generated`, `__pycache__`, `.cache`, lock files, and other build artifacts / dependencies / caches / generated files
+- **Priority reading**: Root README, package manifests (package.json / go.mod / Cargo.toml / pom.xml, etc.), entry files, core business directories, test directories, CI configuration
+- **Large project strategy**: If the project has more than 20 core modules or a massive codebase, sample core modules first — do not attempt a full scan. Place remaining modules in a backlog for later coverage
+
+#### 1.2 Analysis Content
+
+Within the scan boundaries, understand:
 - Project purpose and core responsibilities
 - Tech stack (languages, frameworks, build tools)
 - Module breakdown and their responsibilities
@@ -16,43 +25,111 @@ First, read through the project source code and existing documentation to unders
 - Current project phase (initial build / active development / maintenance)
 - Recurring development operation patterns
 
-### Step 2: Create File Structure
+#### 1.3 Information Source Priority
 
-Create files following this structure, all under the `.ai/` directory:
+When different sources conflict, judge by this priority:
+
+**Build config / build scripts / CI config / current source structure > Tests > README > other historical docs > comments > issues / commits**
+
+#### 1.4 Degradation Strategy
+
+When encountering uncertainty during analysis:
+- If project standards are inconsistent, document the "current state" rather than forcing unification
+- If architectural decisions cannot be confirmed, mark as `<!-- TBD -->`
+- If the project is too large for full analysis, cover core modules only; list the rest in a backlog
+- If existing standards conflict, explain the source of conflict and each side's current state — do not arbitrate
+
+### Step 2: Output Analysis Report
+
+**Do not create files immediately.** First output the following for confirmation:
+1. Project understanding summary (purpose, tech stack, modules, phase, core conventions)
+2. Proposed `.ai/` directory structure and file list
+3. Expected content summary for each file (one sentence)
+4. Identified uncertainties and items requiring confirmation
+5. For large projects, state the current round's coverage scope and backlog
+
+Each key judgment must include at least one evidence source (e.g., which directory, config file, test, or entry file it came from) — detailed quotes are not required, but it must be traceable.
+
+Proceed to Step 3 after user confirmation. If the user explicitly says "just create them", or the project meets most of the following conditions, skip confirmation and execute directly:
+- Core modules ≤ 10
+- Tech stack involves no more than 2–3 categories
+- Root directory structure is clear, no obvious multi-subsystem / monorepo characteristics
+- Existing documentation largely matches the code
+
+### Step 3: Create Files by Priority
+
+#### 3.1 Output Priority
+
+Create in the following order, ensuring core file quality first:
+
+**First priority (required):**
+1. `AGENTS.md` — Project overview
+2. `.ai-instructions` — Guide entry point
+3. `.ai/instructions/ai-workflow.md` — Documentation update standards
+4. Core instructions (2–4 high-value standards files)
+5. `MEMORY.md` — Development progress tracking
+
+**Second priority (as needed):**
+6. `.ai/docs/` — Feature design documents
+7. `.ai/skills/` — High-frequency skills (2–3)
+8. `.ai/agents/` — At least one read-only review Agent
+9. `.ai/prompts/` — Common Prompt templates
+
+#### 3.2 Safe Write Rules
+
+- If a target file already exists, prefer to **merge and supplement** rather than blindly overwrite
+- Write uncertain content as `<!-- TBD -->` — do not disguise it as confirmed conclusions
+- Specific skill / agent / prompt / doc files are created as needed, but **all directories must be created**
+- Each on-demand directory (docs / skills / agents / prompts) must contain a `README.md` explaining the directory's purpose, file naming conventions, and creation criteria — so users aren't confused by the directory's existence
+- Apart from directory READMEs, do not create placeholder business files just to fill the structure; on-demand files should only be created when supported by project evidence
+- If the project already has similar documentation, new documents should **link to existing docs** rather than duplicate descriptions
+
+#### 3.3 File Structure
+
+All directories must be created. Files marked `[as needed]` are created based on actual project requirements.
 
 ```
 .ai-instructions              — Guide entry point (first file AI reads)
 AGENTS.md                     — Project overview (root directory, concise, under 30 lines)
 MEMORY.md                     — Development progress tracking (root directory)
 .ai/
-  instructions/               — Domain-specific coding standards (multiple files as needed)
+  instructions/               — Domain-specific coding standards
+    ai-workflow.md            — Documentation update standards (required)
+    *.md                      — Other standards files (as needed)
   docs/                       — Feature design and tracking documents
+    README.md                 — Directory guide: purpose, file naming conventions, creation criteria
+    changelog.md              — MEMORY.md history archive index (as needed)
+    archive/                  — Archive for invalidated prompts / skills / docs (as needed)
+    *.md                      — Design documents (as needed)
   skills/                     — Reusable operation templates
-    <skill-name>/SKILL.md
+    README.md                 — Directory guide: what skills are, extraction criteria, structure requirements
+    <skill-name>/SKILL.md     — Specific skills (as needed)
   agents/                     — Custom Agents
-    <name>.agent.md
+    README.md                 — Directory guide: Agent definition format, tool restriction guidelines
+    <name>.agent.md           — Specific Agents (as needed)
   prompts/                    — Prompt shortcut templates
-    <name>.prompt.md
+    README.md                 — Directory guide: Prompt format requirements, referencing conventions
+    <name>.prompt.md          — Specific Prompts (as needed)
 ```
 
-### Step 3: Format Requirements for Each File
+### Step 4: Format Requirements for Each File
 
 #### AGENTS.md (root directory)
 - Title: `# Project Guidelines`
-- Include only: project positioning (1-2 sentences), tech stack (list), module overview (table), core conventions (4-5 items)
+- Include only: project positioning (1-2 sentences), tech stack (list), core module overview (table — list core modules only, omit non-core), core conventions (4-5 items)
 - Move detailed content to `.ai/docs/`; AGENTS.md serves only as an index
 - Keep under 30 lines — it's loaded in full for every conversation
 
 #### .ai-instructions (guide entry point)
 Must include these sections:
-1. **Required reading**: List AGENTS.md → MEMORY.md → `.ai/instructions/` full directory, in order
+1. **Required reading**: List AGENTS.md → MEMORY.md → core instructions (only the most important ones; place the rest in on-demand reading)
 2. **On-demand reading**: Table listing docs directory files and trigger conditions
 3. **Available skills**: Table listing skills and their applicable scenarios
 4. **Available Agents**: Table listing agents with roles/tool restrictions
 5. **Available Prompts**: Table listing prompts and their purposes
 6. **Documentation structure**: Directory tree
 7. **Mandatory workflow**: What to read before starting, what must be updated after finishing
-8. **Language requirements**
+8. **Language requirements**: English
 
 #### .ai/instructions/*.md (coding standards)
 - Each file must have YAML frontmatter:
@@ -77,7 +154,13 @@ Must include these sections:
   ---
   ```
 - Body includes: applicable scenarios, project conventions (with code examples), step-by-step procedures, key constraints
-- Extract recurring operation patterns from the project as skills
+- **Skill extraction threshold**: Only extract as a skill when the operation meets ALL of the following:
+  - A repeating pattern that appears 3+ times in the project
+  - Has clear inputs and outputs
+  - Steps are stable and reproducible
+  - Contains project-specific constraints or conventions
+  - Can be reused for future similar tasks
+- Do not create skills for generic operations with no project-specific characteristics (e.g., "read code", "fix bug")
 
 #### .ai/agents/<name>.agent.md (custom Agents)
 - Must have YAML frontmatter:
@@ -90,6 +173,7 @@ Must include these sections:
   ```
 - Body defines: role positioning, scope of responsibilities, constraints (what NOT to do), specific checklists or work steps
 - Create at least one read-only review Agent (tools: [read, search])
+- `tools` is a document-level capability constraint declaration expressing the minimal required capabilities — it does not depend on any specific editor's implementation
 
 #### .ai/prompts/<name>.prompt.md (Prompt templates)
 - Must have YAML frontmatter:
@@ -108,9 +192,11 @@ Must include these sections:
 - Mark last update date in file header
 - Keep under 100 lines; archive excess to `.ai/docs/changelog.md`
 
-### Step 4: Content Quality Checklist
+### Step 5: Content Quality Checklist
 
 After creation, self-check:
+
+#### Format Checks
 - [ ] AGENTS.md ≤ 30 lines, no detailed module descriptions
 - [ ] All instructions/skills/agents/prompts have correct YAML frontmatter
 - [ ] Skills' `name` field matches their directory name
@@ -121,11 +207,46 @@ After creation, self-check:
 - [ ] Each Agent's tools are the minimal necessary set, not all tools
 - [ ] Mandatory workflow requires updating MEMORY.md after completion
 
+#### Content Credibility Checks
+- [ ] Each instruction can trace to at least one evidence source in the project (code, config, or tests)
+- [ ] Each skill corresponds to at least one real high-frequency development workflow
+- [ ] Each prompt references actually existing instructions or skills
+- [ ] Module breakdown matches the project's actual directory structure and entry files
+- [ ] Unconfirmed content is explicitly marked as `<!-- TBD -->`, not disguised as established fact
+- [ ] Build artifacts, generated code, and legacy remnants are not used as current standards evidence
+
+### Completion Verification
+
+After creation, output the following to close this round:
+1. List of created files (with paths)
+2. Self-check results summary (passed / failed items)
+3. Summary of items requiring confirmation
+4. Follow-up suggestions (if there is a backlog or items to supplement)
+
+### Maintenance and Evolution
+
+To ensure the `.ai/` system doesn't become outdated:
+- Define in `ai-workflow.md`: which project changes must trigger instruction updates (e.g., tech stack migration, directory restructuring, new modules)
+- Archive invalidated prompts and skills to `.ai/docs/archive/` promptly — do not leave them in active directories
+- Archive MEMORY.md content exceeding 100 lines to `.ai/docs/changelog.md`
+- After any major refactoring, re-evaluate the accuracy of the `.ai/` system
+
+### Large Project Adaptation
+
+If the project is a monorepo or contains multiple subsystems:
+- Root-level `.ai/` stores universal standards and navigation
+- Each sub-project/sub-module can have its own local `.ai/instructions/`
+- Root directory retains only cross-subsystem shared standards and navigation index
+- Subsystem-specific standards should not be crammed into root-level instructions
+- When root-level standards conflict with subsystem-local standards, the subsystem-local standards take precedence within their scope; root-level standards only provide shared constraints
+
 ### Universal Principles
 
+- **Evidence first**: Documentation content must be based on source code, build config, tests, and CI — never fabricated
 - **Concise first**: AGENTS.md and instructions consume context window — shorter is better
 - **Keyword-driven discovery**: description is the sole basis for Agent file discovery — keywords must be accurate
 - **One file, one concern**: Don't mix test standards with API standards
 - **Show don't tell**: Use brief code examples rather than long paragraphs
 - **Link don't embed**: Put detailed content in docs; main files only index
 - **Cross-editor compatible**: Don't rely on editor-specific mechanisms (like Hooks); file formats must be universal
+- **Safe writes**: Prefer supplementing existing files over overwriting; mark uncertainties as TBD; never create empty files

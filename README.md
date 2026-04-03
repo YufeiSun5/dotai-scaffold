@@ -22,18 +22,21 @@ AGENTS.md                     # Project overview (≤30 lines)
 MEMORY.md                     # Development progress tracking
 .ai/
   instructions/               # Coding standards with frontmatter
-    backend.md                #   applyTo: **/*.go, **/*.py, etc.
-    frontend.md               #   applyTo: src/**/*.tsx, etc.
-    ai-workflow.md             #   Documentation update rules
+    ai-workflow.md             #   Documentation update rules (required)
+    backend.md                 #   applyTo: **/*.go, **/*.py, etc. (as needed)
+    frontend.md                #   applyTo: src/**/*.tsx, etc. (as needed)
   docs/                       # Feature design & tracking
-    architecture.md
+    README.md                  #   Directory guide: purpose & conventions
+    architecture.md            #   (as needed)
   skills/                     # Reusable operation templates
-    add-api-endpoint/SKILL.md
-    update-progress/SKILL.md
+    README.md                  #   Directory guide: what skills are & criteria
+    add-api-endpoint/SKILL.md  #   (as needed)
   agents/                     # Custom agents with tool restrictions
-    code-review.agent.md      #   tools: [read, search] (read-only)
+    README.md                  #   Directory guide: agent format & tool rules
+    code-review.agent.md       #   tools: [read, search] (as needed)
   prompts/                    # Quick-trigger task templates
-    new-api.prompt.md
+    README.md                  #   Directory guide: prompt format & usage
+    new-api.prompt.md          #   (as needed)
 ```
 
 ## Usage / 使用方法 / 使い方
@@ -41,21 +44,30 @@ MEMORY.md                     # Development progress tracking
 1. Open your project in any AI-powered editor
 2. Start a new chat with the AI agent
 3. Paste the content of the prompt file for your language
-4. The agent will analyze your project and create the full `.ai/` structure
+4. The agent will first analyze your project and output a report
+5. Confirm the report, then the agent creates the `.ai/` structure
+
+For small projects (≤10 core modules), the agent may skip confirmation and create files directly.
 
 ---
 
 1. 在任意 AI 编辑器中打开你的项目
 2. 开启一个新的 AI 对话
 3. 粘贴对应语言的提示词文件内容
-4. Agent 会分析项目并创建完整的 `.ai/` 结构
+4. Agent 会先分析项目并输出分析报告
+5. 确认报告后，Agent 创建完整的 `.ai/` 结构
+
+小型项目（≤10 个核心模块）Agent 可跳过确认直接创建。
 
 ---
 
 1. 任意のAI対応エディタでプロジェクトを開く
 2. AIエージェントと新しいチャットを開始
 3. 対応言語のプロンプトファイルの内容を貼り付ける
-4. エージェントがプロジェクトを分析し、完全な `.ai/` 構造を作成
+4. エージェントがまずプロジェクトを分析しレポートを出力
+5. レポートを確認後、エージェントが `.ai/` 構造を作成
+
+小規模プロジェクト（コアモジュール10以下）の場合、確認をスキップして直接作成可。
 
 ## Prompt Files / 提示词文件 / プロンプトファイル
 
@@ -69,21 +81,45 @@ MEMORY.md                     # Development progress tracking
 
 | Principle | Why |
 |-----------|-----|
+| **Evidence first** | All documentation must be grounded in source code, config, tests — no fabrication |
 | **Concise first** | AGENTS.md loads every conversation — shorter = more room for code |
 | **Keyword-driven discovery** | `description` is how agents find files — keywords must be precise |
 | **One file, one concern** | Don't mix backend rules with frontend rules |
 | **Show don't tell** | Brief code examples over long paragraphs |
 | **Link don't embed** | Details in docs/, main files only index |
 | **Cross-editor compatible** | No editor-specific hooks — works everywhere |
+| **Safe writes** | Supplement over overwrite; mark uncertainties; no empty files |
 
 | 原则 | 原因 |
 |------|------|
+| **证据优先** | 文档内容必须基于源码、配置、测试推断——不得编造 |
 | **精简优先** | AGENTS.md 每次对话全量加载——越短留给代码的空间越多 |
 | **关键词驱动发现** | `description` 是 Agent 发现文件的唯一依据——关键词要准 |
 | **一个文件一个关注点** | 不要把后端规范和前端规范混在一起 |
 | **Show don't tell** | 用简短代码示例而非长段落 |
 | **Link don't embed** | 详细内容放 docs/，主文件只索引 |
 | **跨编辑器兼容** | 不依赖特定编辑器——到处能用 |
+| **安全写入** | 已有文件优先补充不覆盖，不确定标记待确认，不创建空洞文件 |
+
+## Key Features / 核心特性 / 主な特徴
+
+### Phased Execution / 分阶段执行 / 段階的実行
+
+The prompt follows a 3-phase approach instead of creating everything at once:
+1. **Analyze** — Understand the project within defined scan boundaries
+2. **Report** — Output findings for user confirmation before creating files
+3. **Create** — Build files in priority order with safe write rules
+
+提示词采用三阶段方式而非一次性创建全部：
+1. **分析** — 在定义的扫描边界内理解项目
+2. **报告** — 输出分析结果供用户确认后再创建文件
+3. **创建** — 按优先级创建文件，遵循安全写入规则
+
+### Degradation Strategy / 降级策略 / デグレード戦略
+
+When the AI can't determine something with certainty, it documents the current state rather than guessing. Unconfirmed content is explicitly marked as TBD.
+
+当 AI 无法确定某些内容时，记录现状而非猜测。未确认内容显式标记为"待确认"。
 
 ## Compatibility / 兼容性 / 互換性
 
