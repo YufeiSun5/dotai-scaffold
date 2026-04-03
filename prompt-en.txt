@@ -14,6 +14,8 @@ Define the analysis scope first:
 - **Ignore directories**: `node_modules`, `dist`, `build`, `.next`, `coverage`, `vendor`, `generated`, `__pycache__`, `.cache`, lock files, and other build artifacts / dependencies / caches / generated files
 - **Priority reading**: Root README, package manifests (package.json / go.mod / Cargo.toml / pom.xml, etc.), entry files, core business directories, test directories, CI configuration
 - **Large project strategy**: If the project has more than 20 core modules or a massive codebase, sample core modules first — do not attempt a full scan. Place remaining modules in a backlog for later coverage
+- **Core module identification**: Prioritize based on entry point reference chains, main business directories, build configuration, CI coverage scope, test coverage density, and modules explicitly listed in README
+- **"Massive codebase" definition**: Refers to projects with obvious multi-subsystem characteristics, complex directory hierarchies, scattered configs and entry points, or where a single analysis pass cannot form a reliable global understanding
 
 #### 1.2 Analysis Content
 
@@ -77,7 +79,7 @@ Create in the following order, ensuring core file quality first:
 
 #### 3.2 Safe Write Rules
 
-- If a target file already exists, prefer to **merge and supplement** rather than blindly overwrite
+- If a target file already exists, prefer to **merge and supplement** rather than blindly overwrite. When merging, preserve the original file structure and fill in missing sections; if original content conflicts with current analysis, keep the original text and mark with `<!-- TBD -->`
 - Write uncertain content as `<!-- TBD -->` — do not disguise it as confirmed conclusions
 - Specific skill / agent / prompt / doc files are created as needed, but **all directories must be created**
 - Each on-demand directory (docs / skills / agents / prompts) must contain a `README.md` explaining the directory's purpose, file naming conventions, and creation criteria — so users aren't confused by the directory's existence
@@ -185,7 +187,7 @@ Must include these sections:
   ---
   ```
 - Body uses Markdown links to reference related instructions and SKILL.md files
-- Create Prompts for the 3-5 most common operations in the project
+- Create Prompts for the 3–5 most common operations in the project; if the project has fewer scenarios, fewer than 3 is acceptable — do not create low-value templates just to meet a quota
 
 #### MEMORY.md (development progress)
 - Include: current phase, completed items, AI engineering status checklist, follow-up suggestions
