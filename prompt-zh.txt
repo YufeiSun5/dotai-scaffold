@@ -77,6 +77,11 @@
 8. `.ai/agents/` — 至少一个只读审查 Agent
 9. `.ai/prompts/` — 常用 Prompt 模板
 
+**第三优先级（编辑器适配）：**
+10. `.github/copilot-instructions.md` — Copilot 仓库级入口
+11. `.github/instructions/*.instructions.md` — Copilot 路径级规则
+12. `.cursor/rules/*.mdc` — Cursor 规则入口
+
 #### 3.2 安全写入规则
 
 - 若目标文件已存在，优先**合并和补充**，不盲目覆盖。合并时优先保留原文件结构并补全缺失章节；若原内容与当前分析冲突，保留原文并标注 `<!-- 待确认 -->`
@@ -217,6 +222,13 @@ MEMORY.md                     — 开发进度追踪（根目录）
 - [ ] 未确认内容都显式标记为 `<!-- 待确认 -->`，不伪装成确定事实
 - [ ] 没有把构建产物、生成代码、历史遗留当作当前规范依据
 
+#### 适配层检查
+- [ ] 适配文件不包含完整规范正文，只做导航和入口
+- [ ] 每个适配文件引用的 `.ai/` 母本文件实际存在
+- [ ] `.github/instructions/*.instructions.md` 的 `applyTo` 与对应 `.ai/instructions/*.md` 的 `applyTo` 覆盖范围一致
+- [ ] `.cursor/rules/*.mdc` 的 `globs` 与对应 `.ai/instructions/*.md` 的 `applyTo` 覆盖范围一致
+- [ ] 适配层文件总行数不超过对应母本文件
+
 ### 完成验收
 
 创建完成后，输出以下内容作为本轮结束：
@@ -241,6 +253,94 @@ MEMORY.md                     — 开发进度追踪（根目录）
 - 根目录只保留跨子系统的共性规范和导航索引
 - 子系统特有规范不要塞进根级 instructions
 - 当根级规范与子系统局部规范冲突时，子系统局部规范在其作用域内优先，根级规范仅提供共性约束
+
+### 编辑器适配层
+
+`.ai/` 体系为母本，存放全量规范内容。为提升 Copilot 和 Cursor 的原生规则发现能力，补充一层很薄的适配入口。
+
+#### 总原则
+
+- `.ai/` 写全量内容，适配层只写短入口，不写第二套正文
+- 适配文件的职责是“告诉编辑器去读哪份母本”，不是复制规范
+- 适配层文件永远比母本短，单文件控制在 10~20 行
+- 只维护母本，适配层仅在母本文件重命名或路径变更时同步引用
+
+#### Copilot 适配（必做）
+
+Copilot 原生识别 `.github/copilot-instructions.md`（仓库级常驻）和 `.github/instructions/*.instructions.md`（路径级）。
+
+**`.github/copilot-instructions.md`**：
+- 控制在 10~20 行
+- 内容仅包括：先读 AGENTS.md、再读 .ai-instructions、信息源优先级、待确认标记规则、完成后更新 MEMORY.md、语言要求
+- 不包含具体编码规范
+
+**`.github/instructions/*.instructions.md`**：
+- 仅为核心 `.ai/instructions/*.md` 创建对应的适配文件（2~4 个），不全量镜像
+- 文件名必须以 `.instructions.md` 结尾
+- 必须有 YAML frontmatter 含 `applyTo` 字段，与对应母本的 `applyTo` 覆盖范围一致
+- 正文只写：先读哪几份母本文件 + 2~4 条关键约束
+
+示例：
+```md
+---
+applyTo: "**/*.ts,**/*.tsx,src/frontend/**"
+---
+
+Read `AGENTS.md`, `.ai-instructions`, and `.ai/instructions/frontend.md` before editing these files.
+
+Rules:
+- Follow existing component patterns before introducing new abstractions.
+- Keep changes minimal and consistent with nearby files.
+- Update related tests when behavior changes.
+- Mark uncertain decisions as `<!-- 待确认 -->`.
+```
+
+#### Cursor 适配（建议）
+
+Cursor 识别 `.cursor/rules/*.mdc` 目录下的规则文件。
+
+**`.cursor/rules/00-core.mdc`**：
+- 设置 `alwaysApply: true`，`globs: ["**/*"]`
+- 内容与 `copilot-instructions.md` 对等：先读 AGENTS.md、再用 .ai-instructions 导航、同样的核心约束
+
+**`.cursor/rules/<domain>.mdc`**：
+- 仅为核心领域创建（2~4 个），不全量镜像
+- 设置 `alwaysApply: false`，用 `globs` 指定作用范围，与对应母本的 `applyTo` 一致
+- 正文只写：先读哪几份母本文件 + 2~4 条关键约束
+
+示例：
+```md
+---
+description: Frontend file editing rules
+globs: ["**/*.tsx", "**/*.jsx", "src/frontend/**"]
+alwaysApply: false
+---
+
+Before editing these files, read:
+- `AGENTS.md`
+- `.ai-instructions`
+- `.ai/instructions/frontend.md`
+
+Rules:
+- Reuse existing UI patterns before creating new abstractions.
+- Keep props and state handling consistent with nearby files.
+- Update related tests when UI behavior changes.
+```
+
+#### 适配层映射关系
+
+| 母本 | Copilot 适配 | Cursor 适配 |
+|------|-------------|-------------|
+| `AGENTS.md` | 直接复用 | 直接复用 |
+| `.ai-instructions` | `.github/copilot-instructions.md` 中引用 | `00-core.mdc` 中引用 |
+| `.ai/instructions/<domain>.md` | `.github/instructions/<domain>.instructions.md` | `.cursor/rules/<domain>.mdc` |
+| `MEMORY.md` | 仓库级入口中要求更新 | 核心规则中要求更新 |
+
+#### 同步纪律
+
+1. **只改母本**：规范变化先改 `.ai/`，不直接改适配层
+2. **引用同步**：仅当母本文件重命名或路径变更时，同步适配层的引用
+3. **不承载细节**：适配层只做导航、触发和少量硬规则
 
 ### 通用原则
 

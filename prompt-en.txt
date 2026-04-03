@@ -77,6 +77,11 @@ Create in the following order, ensuring core file quality first:
 8. `.ai/agents/` — At least one read-only review Agent
 9. `.ai/prompts/` — Common Prompt templates
 
+**Third priority (editor adapters):**
+10. `.github/copilot-instructions.md` — Copilot repo-level entry
+11. `.github/instructions/*.instructions.md` — Copilot path-level rules
+12. `.cursor/rules/*.mdc` — Cursor rule entries
+
 #### 3.2 Safe Write Rules
 
 - If a target file already exists, prefer to **merge and supplement** rather than blindly overwrite. When merging, preserve the original file structure and fill in missing sections; if original content conflicts with current analysis, keep the original text and mark with `<!-- TBD -->`
@@ -217,6 +222,13 @@ After creation, self-check:
 - [ ] Unconfirmed content is explicitly marked as `<!-- TBD -->`, not disguised as established fact
 - [ ] Build artifacts, generated code, and legacy remnants are not used as current standards evidence
 
+#### Adapter Layer Checks
+- [ ] Adapter files contain no full specification text — only navigation and entry points
+- [ ] Every `.ai/` source file referenced by an adapter file actually exists
+- [ ] `applyTo` in `.github/instructions/*.instructions.md` matches the corresponding `.ai/instructions/*.md` coverage
+- [ ] `globs` in `.cursor/rules/*.mdc` matches the corresponding `.ai/instructions/*.md` coverage
+- [ ] Each adapter file is shorter than its corresponding source file
+
 ### Completion Verification
 
 After creation, output the following to close this round:
@@ -241,6 +253,94 @@ If the project is a monorepo or contains multiple subsystems:
 - Root directory retains only cross-subsystem shared standards and navigation index
 - Subsystem-specific standards should not be crammed into root-level instructions
 - When root-level standards conflict with subsystem-local standards, the subsystem-local standards take precedence within their scope; root-level standards only provide shared constraints
+
+### Editor Adapter Layer
+
+The `.ai/` system is the source of truth containing all specification content. To improve native rule discovery for Copilot and Cursor, add a thin adapter entry layer.
+
+#### General Principles
+
+- `.ai/` holds all content; adapter layers only write short entries — never a second copy of specifications
+- Adapter files' job is to "tell the editor which source files to read" — not to duplicate rules
+- Adapter files must always be shorter than their source; keep each under 10–20 lines
+- Only modify source files; sync adapter layers only when source files are renamed or paths change
+
+#### Copilot Adapter (required)
+
+Copilot natively recognizes `.github/copilot-instructions.md` (repo-level) and `.github/instructions/*.instructions.md` (path-level).
+
+**`.github/copilot-instructions.md`**:
+- Keep to 10–20 lines
+- Content: read AGENTS.md first, then .ai-instructions, information source priority, TBD marking rule, update MEMORY.md after work, language requirements
+- No specific coding standards
+
+**`.github/instructions/*.instructions.md`**:
+- Create adapter files only for core `.ai/instructions/*.md` (2–4 files) — do not mirror all
+- Filename must end with `.instructions.md`
+- Must have YAML frontmatter with `applyTo` matching the source file's `applyTo` coverage
+- Body: which source files to read + 2–4 key constraints only
+
+Example:
+```md
+---
+applyTo: "**/*.ts,**/*.tsx,src/frontend/**"
+---
+
+Read `AGENTS.md`, `.ai-instructions`, and `.ai/instructions/frontend.md` before editing these files.
+
+Rules:
+- Follow existing component patterns before introducing new abstractions.
+- Keep changes minimal and consistent with nearby files.
+- Update related tests when behavior changes.
+- Mark uncertain decisions as `<!-- TBD -->`.
+```
+
+#### Cursor Adapter (recommended)
+
+Cursor recognizes rule files under `.cursor/rules/*.mdc`.
+
+**`.cursor/rules/00-core.mdc`**:
+- Set `alwaysApply: true`, `globs: ["**/*"]`
+- Content mirrors `copilot-instructions.md`: read AGENTS.md first, use .ai-instructions for navigation, same core constraints
+
+**`.cursor/rules/<domain>.mdc`**:
+- Create only for core domains (2–4 files) — do not mirror all
+- Set `alwaysApply: false`, use `globs` matching the source file's `applyTo`
+- Body: which source files to read + 2–4 key constraints only
+
+Example:
+```md
+---
+description: Frontend file editing rules
+globs: ["**/*.tsx", "**/*.jsx", "src/frontend/**"]
+alwaysApply: false
+---
+
+Before editing these files, read:
+- `AGENTS.md`
+- `.ai-instructions`
+- `.ai/instructions/frontend.md`
+
+Rules:
+- Reuse existing UI patterns before creating new abstractions.
+- Keep props and state handling consistent with nearby files.
+- Update related tests when UI behavior changes.
+```
+
+#### Adapter Mapping
+
+| Source | Copilot Adapter | Cursor Adapter |
+|--------|-----------------|----------------|
+| `AGENTS.md` | Reused directly | Reused directly |
+| `.ai-instructions` | Referenced in `.github/copilot-instructions.md` | Referenced in `00-core.mdc` |
+| `.ai/instructions/<domain>.md` | `.github/instructions/<domain>.instructions.md` | `.cursor/rules/<domain>.mdc` |
+| `MEMORY.md` | Required update in repo-level entry | Required update in core rule |
+
+#### Sync Discipline
+
+1. **Only modify source**: Specification changes go to `.ai/` first — never directly to adapter layers
+2. **Reference sync**: Only sync adapter references when source files are renamed or paths change
+3. **No detail in adapters**: Adapters only provide navigation, triggers, and minimal hard rules
 
 ### Universal Principles
 

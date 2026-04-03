@@ -39,6 +39,24 @@ MEMORY.md                     # Development progress tracking
     new-api.prompt.md          #   (as needed)
 ```
 
+### Editor Adapter Layer / 编辑器适配层 / エディタアダプタレイヤー
+
+```
+.github/                       # Copilot adapter (thin entry layer)
+  copilot-instructions.md       #   Repo-level: read AGENTS.md + .ai-instructions
+  instructions/
+    frontend.instructions.md    #   Path-level: points to .ai/instructions/frontend.md
+    backend.instructions.md     #   Path-level: points to .ai/instructions/backend.md
+    tests.instructions.md       #   Path-level: points to .ai/instructions/tests.md
+
+.cursor/                       # Cursor adapter (thin entry layer)
+  rules/
+    00-core.mdc                 #   Always-on: read AGENTS.md + .ai-instructions
+    frontend.mdc                #   Glob-scoped: points to .ai/instructions/frontend.md
+    backend.mdc                 #   Glob-scoped: points to .ai/instructions/backend.md
+    tests.mdc                   #   Glob-scoped: points to .ai/instructions/tests.md
+```
+
 ## Usage / 使用方法 / 使い方
 
 1. Open your project in any AI-powered editor
@@ -121,11 +139,21 @@ When the AI can't determine something with certainty, it documents the current s
 
 当 AI 无法确定某些内容时，记录现状而非猜测。未确认内容显式标记为"待确认"。
 
+### Editor Adapter Layer / 编辑器适配层 / エディタアダプタレイヤー
+
+`.ai/` is the single source of truth. Thin adapter entries in `.github/` (Copilot) and `.cursor/` (Cursor) point editors to the right source files — no duplication.
+
+`.ai/` 为唯一母本。`.github/`（Copilot）和 `.cursor/`（Cursor）中的薄适配层将编辑器引导到正确的源文件——不复制规范。
+
 ## Compatibility / 兼容性 / 互換性
 
 Tested with: **VS Code + Copilot**, **Cursor**, **Trae**, **Claude Code**
 
 The `.ai/` directory convention is recognized by multiple AI coding tools. YAML frontmatter (`description`, `applyTo`, `name`, `tools`) follows the emerging cross-editor standard.
+
+The editor adapter layer provides native integration:
+- **Copilot**: `.github/copilot-instructions.md` + `.github/instructions/*.instructions.md`
+- **Cursor**: `.cursor/rules/*.mdc` + `AGENTS.md`
 
 ## License
 
