@@ -117,6 +117,8 @@ MEMORY.md                     — Development progress tracking (root directory)
     <name>.prompt.md          — Specific Prompts (as needed)
 ```
 
+> Deep-review workflow artifacts (`tests/`, `deep-review.agent.md`, `deep-review.prompt.md`, and the `## Review Log` section in `MEMORY.md`) are an **opt-in capability initiated by the user**. **Do not create them by default and do not ask about them proactively.** Create them incrementally per the "Deep-Review Workflow Artifacts" section only when the user explicitly requests it (e.g., "enable review workflow", "add deep review", `/review`).
+
 ### Step 4: Format Requirements for Each File
 
 #### AGENTS.md (root directory — sole auto-loaded entry point)
@@ -196,9 +198,46 @@ Move detailed content to `.ai/docs/`; AGENTS.md serves only as index and navigat
 - Create Prompts for the 3–5 most common operations in the project; if the project has fewer scenarios, fewer than 3 is acceptable — do not create low-value templates just to meet a quota
 
 #### MEMORY.md (development progress)
-- Include: current phase, completed items, AI engineering status checklist, follow-up suggestions
+- Include: current phase, completed items, AI engineering status checklist, follow-up suggestions, **change log**
 - Mark last update date in file header
 - Keep under 100 lines; archive excess to `.ai/docs/changelog.md`
+- **Change log entry format**: one line per entry, short and clear, must include the model name and a timestamp precise to the minute
+  ```
+  - YYYY-MM-DD HH:MM | <model-name> | <one-sentence description of the change>
+  ```
+  - Use local timezone, minute precision (do not use date-only)
+  - `model-name` identifies the model that made the change, e.g. `claude-opus-4.7`, `gpt-5`, `gemini-2.5-pro`
+  - Description ≤ 80 characters; no multi-paragraph text; collapse multi-file changes into a single entry
+- When the deep-review workflow is enabled, add a separate `## Review Log` section, one line per round (see deep-review section below)
+
+#### Deep-Review Workflow Artifacts (created only when the user initiates it; not created by default)
+
+##### tests/ directory
+- Reuse the existing test directory and framework when present; otherwise create one per language convention
+- `tests/README.md` must state: test framework used, unified run command, directory organization, expected coverage
+- `ai-review/` (or equivalent subdirectory) holds regression tests added by the review workflow; filenames must be traceable to the triggering review item
+
+##### .ai/agents/deep-review.agent.md
+- frontmatter `tools` minimum set: `[read, search, edit, run]` (`run` is required to execute tests)
+- Fixed 5-step loop, executed strictly in order:
+  1. **Review** — produce an issue list based on `.ai/instructions/` and the latest diff
+  2. **Add tests** — write tests under `tests/` for uncovered critical paths
+  3. **Run tests** — execute the project test command and collect failures
+  4. **Fix failures** — minimal fix targeting failures; **never bypass failures by deleting or skipping tests**
+  5. **Review again** — return to step 1, until no new issues and all tests pass
+- Exit condition: two consecutive rounds with no new issues and all tests green
+- At the end of each round, append one entry to the `## Review Log` section in `MEMORY.md`
+
+##### .ai/prompts/deep-review.prompt.md
+- References `deep-review.agent.md` and related instructions
+- Provides a trigger entry (e.g., `/review` or a one-line trigger)
+
+##### MEMORY.md Review Log format
+```
+## Review Log
+- YYYY-MM-DD HH:MM | <model-name> | round <N> | <one-sentence summary of changes and conclusion>
+```
+- Minute precision; `round N` marks the current loop iteration; the conclusion must explicitly state "pass / continue next round"
 
 ### Step 5: Content Quality Checklist
 
@@ -214,6 +253,8 @@ After creation, self-check:
 - [ ] No content duplication between instructions (especially with AGENTS.md)
 - [ ] Each Agent's tools are the minimal necessary set, not all tools
 - [ ] Mandatory workflow requires updating MEMORY.md after completion
+- [ ] MEMORY.md change-log entries follow the format (model name + minute-precision timestamp, single concise line)
+- [ ] Deep-review artifacts are not created by default; only when the user initiates them, `tests/`, `deep-review.agent.md`, `deep-review.prompt.md`, and the `## Review Log` section in `MEMORY.md` all exist
 
 #### Content Credibility Checks
 - [ ] Each instruction can trace to at least one evidence source in the project (code, config, or tests)
