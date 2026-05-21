@@ -2,7 +2,7 @@
 
 ## 目标
 
-在项目中建立一套让 AI Agent（跨编辑器：Copilot、Cursor、Trae 等）高效协作的文档结构，包括：项目路引、编码规范、可复用技能、自定义 Agent、Prompt 模板和开发进度追踪。
+在项目中建立一套让 AI Agent（跨编辑器：Copilot、Cursor、Trae、Codex 等）高效协作的文档结构，包括：项目路引、编码规范、可复用技能、自定义 Agent、Prompt 模板和开发进度追踪。
 
 ## 要求
 
@@ -349,7 +349,13 @@ Cursor 识别 `.cursor/rules/*.mdc` 目录下的规则文件。
 - 仅为核心领域创建（2~4 个），不全量镜像
 - 设置 `alwaysApply: false`，用 `globs` 指定作用范围，与对应母本的 `applyTo` 一致
 - 正文只写：先读哪几份母本文件 + 2~4 条关键约束
+#### Codex 适配（原生）
 
+Codex 原生读取项目根目录及所有上级目录的 `AGENTS.md`，无需额外适配文件。
+
+**`AGENTS.md`**：
+- 直接作为 Codex 的项目上下文入口——无需额外配置文件
+- 放置在仓库根目录（已在第三步第一优先级创建）
 示例：
 ```md
 ---
@@ -370,11 +376,11 @@ Rules:
 
 #### 适配层映射关系
 
-| 母本 | Copilot 适配 | Cursor 适配 |
-|------|-------------|-------------|
-| `AGENTS.md`（概述+导航） | 直接复用 + `.github/copilot-instructions.md` 引用 | 直接复用 + `00-core.mdc` 引用 |
-| `.ai/instructions/<domain>.md` | `.github/instructions/<domain>.instructions.md` | `.cursor/rules/<domain>.mdc` |
-| `MEMORY.md` | 仓库级入口中要求更新 | 核心规则中要求更新 |
+| 母本 | Copilot 适配 | Cursor 适配 | Codex 适配 |
+|------|-------------|-------------|-------------|
+| `AGENTS.md`（概述+导航） | 直接复用 + `.github/copilot-instructions.md` 引用 | 直接复用 + `00-core.mdc` 引用 | 原生直接读取，无需适配 |
+| `.ai/instructions/<domain>.md` | `.github/instructions/<domain>.instructions.md` | `.cursor/rules/<domain>.mdc` | （不适用） |
+| `MEMORY.md` | 仓库级入口中要求更新 | 核心规则中要求更新 | AGENTS.md 工作流中要求更新 |
 
 #### 同步纪律
 

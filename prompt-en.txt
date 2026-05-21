@@ -2,7 +2,7 @@ You are an AI engineering expert. Build a complete AI collaboration documentatio
 
 ## Goal
 
-Establish a documentation structure in the project that enables AI Agents (cross-editor: Copilot, Cursor, Trae, etc.) to collaborate efficiently. This includes: project guide, coding standards, reusable skills, custom Agents, Prompt templates, and development progress tracking.
+Establish a documentation structure in the project that enables AI Agents (cross-editor: Copilot, Cursor, Trae, Codex, etc.) to collaborate efficiently. This includes: project guide, coding standards, reusable skills, custom Agents, Prompt templates, and development progress tracking.
 
 ## Requirements
 
@@ -368,13 +368,21 @@ Rules:
 - Update related tests when UI behavior changes.
 ```
 
+#### Codex Adapter (native)
+
+Codex natively reads `AGENTS.md` from the project root and all parent directories. No additional adapter files are required.
+
+**`AGENTS.md`**:
+- Serves directly as the Codex project context entry — no extra config files needed
+- Place at repository root (already created in Step 3 as the first-priority file)
+
 #### Adapter Mapping
 
-| Source | Copilot Adapter | Cursor Adapter |
-|--------|-----------------|----------------|
-| `AGENTS.md` (overview + navigation) | Reused directly + referenced in `.github/copilot-instructions.md` | Reused directly + referenced in `00-core.mdc` |
-| `.ai/instructions/<domain>.md` | `.github/instructions/<domain>.instructions.md` | `.cursor/rules/<domain>.mdc` |
-| `MEMORY.md` | Required update in repo-level entry | Required update in core rule |
+| Source | Copilot Adapter | Cursor Adapter | Codex Adapter |
+|--------|-----------------|----------------|----------------|
+| `AGENTS.md` (overview + navigation) | Reused directly + referenced in `.github/copilot-instructions.md` | Reused directly + referenced in `00-core.mdc` | Used directly — no adapter needed |
+| `.ai/instructions/<domain>.md` | `.github/instructions/<domain>.instructions.md` | `.cursor/rules/<domain>.mdc` | *(not applicable)* |
+| `MEMORY.md` | Required update in repo-level entry | Required update in core rule | Required update in AGENTS.md workflow |
 
 #### Sync Discipline
 

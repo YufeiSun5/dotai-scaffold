@@ -2,7 +2,7 @@
 
 ## 目標
 
-プロジェクト内に、AIエージェント（エディタ横断：Copilot、Cursor、Trae等）が効率的に協業できるドキュメント構造を確立する。含む内容：プロジェクトガイド、コーディング規約、再利用可能なスキル、カスタムエージェント、プロンプトテンプレート、開発進捗管理。
+プロジェクト内に、AIエージェント（エディタ横断：Copilot、Cursor、Trae、Codex等）が効率的に協業できるドキュメント構造を確立する。含む内容：プロジェクトガイド、コーディング規約、再利用可能なスキル、カスタムエージェント、プロンプトテンプレート、開発進捗管理。
 
 ## 要件
 
@@ -366,13 +366,21 @@ Rules:
 - Update related tests when UI behavior changes.
 ```
 
+#### Codexアダプタ（ネイティブ）
+
+Codexはプロジェクトルートと全親ディレクトリの `AGENTS.md` をネイティブに読み込む。追加アダプタファイルは不要。
+
+**`AGENTS.md`**：
+- Codexのプロジェクトコンテキストエントリとして直接機能—追加設定ファイル不要
+- リポジトリルートに配置（ステップ3の第一優先で作成済み）
+
 #### アダプタマッピング
 
-| ソース | Copilotアダプタ | Cursorアダプタ |
-|----------|------------------|-----------------|
-| `AGENTS.md`（概要+ナビゲーション） | そのまま再利用 + `.github/copilot-instructions.md` で参照 | そのまま再利用 + `00-core.mdc` で参照 |
-| `.ai/instructions/<domain>.md` | `.github/instructions/<domain>.instructions.md` | `.cursor/rules/<domain>.mdc` |
-| `MEMORY.md` | リポジトリレベルエントリで更新要求 | コアルールで更新要求 |
+| ソース | Copilotアダプタ | Cursorアダプタ | Codexアダプタ |
+|----------|------------------|-----------------|------------------|
+| `AGENTS.md`（概要+ナビゲーション） | そのまま再利用 + `.github/copilot-instructions.md` で参照 | そのまま再利用 + `00-core.mdc` で参照 | そのまま直接読み込む—アダプタ不要 |
+| `.ai/instructions/<domain>.md` | `.github/instructions/<domain>.instructions.md` | `.cursor/rules/<domain>.mdc` | （該当なし） |
+| `MEMORY.md` | リポジトリレベルエントリで更新要求 | コアルールで更新要求 | AGENTS.mdワークフローで更新要求 |
 
 #### 同期規律
 

@@ -8,11 +8,11 @@
 
 ## What is this? / 这是什么？ / これは何？
 
-A universal prompt that instructs any AI agent (Copilot, Cursor, Trae, Claude, etc.) to analyze your project and scaffold a complete `.ai/` documentation system — coding standards, reusable skills, custom agents, prompt templates, and progress tracking.
+A universal prompt that instructs any AI agent (Copilot, Cursor, Trae, Codex, Claude, etc.) to analyze your project and scaffold a complete `.ai/` documentation system — coding standards, reusable skills, custom agents, prompt templates, and progress tracking.
 
-一个通用提示词，指导任意 AI Agent（Copilot、Cursor、Trae、Claude 等）分析你的项目并搭建完整的 `.ai/` 文档体系——编码规范、可复用技能、自定义 Agent、Prompt 模板和开发进度追踪。
+一个通用提示词，指导任意 AI Agent（Copilot、Cursor、Trae、Codex、Claude 等）分析你的项目并搭建完整的 `.ai/` 文档体系——编码规范、可复用技能、自定义 Agent、Prompt 模板和开发进度追踪。
 
-汎用プロンプト。任意のAIエージェント（Copilot、Cursor、Trae、Claude等）にプロジェクトを分析させ、完全な `.ai/` ドキュメント体系を構築させます——コーディング規約、再利用可能なスキル、カスタムエージェント、プロンプトテンプレート、開発進捗管理。
+汎用プロンプト。任意のAIエージェント（Copilot、Cursor、Trae、Codex、Claude等）にプロジェクトを分析させ、完全な `.ai/` ドキュメント体系を構築させます——コーディング規約、再利用可能なスキル、カスタムエージェント、プロンプトテンプレート、開発進捗管理。
 
 ## Generated Structure / 生成结构 / 生成される構造
 
@@ -140,19 +140,20 @@ When the AI can't determine something with certainty, it documents the current s
 
 ### Editor Adapter Layer / 编辑器适配层 / エディタアダプタレイヤー
 
-`.ai/` is the single source of truth. Thin adapter entries in `.github/` (Copilot) and `.cursor/` (Cursor) point editors to the right source files — no duplication.
+`.ai/` is the single source of truth. Thin adapter entries in `.github/` (Copilot) and `.cursor/` (Cursor) point editors to the right source files — no duplication. Codex reads `AGENTS.md` natively with no extra adapter files.
 
-`.ai/` 为唯一母本。`.github/`（Copilot）和 `.cursor/`（Cursor）中的薄适配层将编辑器引导到正确的源文件——不复制规范。
+`.ai/` 为唯一母本。`.github/`（Copilot）和 `.cursor/`（Cursor）中的薄适配层将编辑器引导到正确的源文件——不复制规范。Codex 原生读取 `AGENTS.md`，无需额外适配文件。
 
 ## Compatibility / 兼容性 / 互換性
 
-Tested with: **VS Code + Copilot**, **Cursor**, **Trae**, **Claude Code**
+Tested with: **VS Code + Copilot**, **Cursor**, **Trae**, **Codex**, **Claude Code**
 
 The `.ai/` directory convention is recognized by multiple AI coding tools. YAML frontmatter (`description`, `applyTo`, `name`, `tools`) follows the emerging cross-editor standard.
 
 The editor adapter layer provides native integration:
 - **Copilot**: `.github/copilot-instructions.md` + `.github/instructions/*.instructions.md`
 - **Cursor**: `.cursor/rules/*.mdc` + `AGENTS.md`
+- **Codex**: `AGENTS.md` (native — no extra adapter needed)
 
 ## License
 
