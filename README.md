@@ -64,7 +64,7 @@ MEMORY.md                     # Development progress tracking
 4. The agent will first analyze your project and output a report
 5. Confirm the report, then the agent creates the `.ai/` structure
 
-For small projects (≤10 core modules), the agent may skip confirmation and create files directly.
+The prompt requires an analysis report and a second confirmation before file creation, even for small projects.
 
 ---
 
@@ -74,7 +74,7 @@ For small projects (≤10 core modules), the agent may skip confirmation and cre
 4. Agent 会先分析项目并输出分析报告
 5. 确认报告后，Agent 创建完整的 `.ai/` 结构
 
-小型项目（≤10 个核心模块）Agent 可跳过确认直接创建。
+中文提示词要求先输出分析报告并等待二次确认，即使小型项目也不跳过确认直接创建。
 
 ---
 
@@ -84,7 +84,7 @@ For small projects (≤10 core modules), the agent may skip confirmation and cre
 4. エージェントがまずプロジェクトを分析しレポートを出力
 5. レポートを確認後、エージェントが `.ai/` 構造を作成
 
-小規模プロジェクト（コアモジュール10以下）の場合、確認をスキップして直接作成可。
+小規模プロジェクトであっても、プロンプトは分析レポートと二回目の確認を必須とし、確認前にファイルを作成しません。
 
 ## Prompt Files / 提示词文件 / プロンプトファイル
 

@@ -1,402 +1,595 @@
-You are an AI engineering expert. Build a complete AI collaboration documentation system for the current project.
+# AI Collaboration Documentation System Initialization Prompt
+
+You are an AI engineering expert. Initialize or maintain a complete AI collaboration documentation system for the current project.
 
 ## Goal
 
-Establish a documentation structure in the project that enables AI Agents (cross-editor: Copilot, Cursor, Trae, Codex, etc.) to collaborate efficiently. This includes: project guide, coding standards, reusable skills, custom Agents, Prompt templates, and development progress tracking.
+Establish a documentation structure that enables AI Agents to collaborate across editors, compatible with common tools such as Copilot, Cursor, Trae, and Codex. The system must cover:
 
-## Requirements
+- Project guidance entry point
+- Current project memory
+- Active collaboration board
+- Domain-specific coding standards
+- Stable design documents and archives
+- Reusable skills
+- Custom Agents
+- Prompt templates
+- Thin editor adapter layers
 
-### Step 1: Analyze the Project
+## Core File Model
 
-#### 1.1 Scan Boundaries
+Use the following file boundaries:
 
-Define the analysis scope first:
-- **Ignore directories**: `node_modules`, `dist`, `build`, `.next`, `coverage`, `vendor`, `generated`, `__pycache__`, `.cache`, lock files, and other build artifacts / dependencies / caches / generated files
-- **Priority reading**: Root README, package manifests (package.json / go.mod / Cargo.toml / pom.xml, etc.), entry files, core business directories, test directories, CI configuration
-- **Large project strategy**: If the project has more than 20 core modules or a massive codebase, sample core modules first — do not attempt a full scan. Place remaining modules in a backlog for later coverage
-- **Core module identification**: Prioritize based on entry point reference chains, main business directories, build configuration, CI coverage scope, test coverage density, and modules explicitly listed in README
-- **"Massive codebase" definition**: Refers to projects with obvious multi-subsystem characteristics, complex directory hierarchies, scattered configs and entry points, or where a single analysis pass cannot form a reliable global understanding
-
-#### 1.2 Analysis Content
-
-Within the scan boundaries, understand:
-- Project purpose and core responsibilities
-- Tech stack (languages, frameworks, build tools)
-- Module breakdown and their responsibilities
-- Existing coding conventions and architectural decisions
-- Current project phase (initial build / active development / maintenance)
-- Recurring development operation patterns
-
-#### 1.3 Information Source Priority
-
-When different sources conflict, judge by this priority:
-
-**Build config / build scripts / CI config / current source structure > Tests > README > other historical docs > comments > issues / commits**
-
-#### 1.4 Degradation Strategy
-
-When encountering uncertainty during analysis:
-- If project standards are inconsistent, document the "current state" rather than forcing unification
-- If architectural decisions cannot be confirmed, mark as `<!-- TBD -->`
-- If the project is too large for full analysis, cover core modules only; list the rest in a backlog
-- If existing standards conflict, explain the source of conflict and each side's current state — do not arbitrate
-
-### Step 2: Output Analysis Report
-
-**Do not create files immediately.** First output the following for confirmation:
-1. Project understanding summary (purpose, tech stack, modules, phase, core conventions)
-2. Proposed `.ai/` directory structure and file list
-3. Expected content summary for each file (one sentence)
-4. Identified uncertainties and items requiring confirmation
-5. For large projects, state the current round's coverage scope and backlog
-
-Each key judgment must include at least one evidence source (e.g., which directory, config file, test, or entry file it came from) — detailed quotes are not required, but it must be traceable.
-
-Proceed to Step 3 after user confirmation. If the user explicitly says "just create them", or the project meets most of the following conditions, skip confirmation and execute directly:
-- Core modules ≤ 10
-- Tech stack involves no more than 2–3 categories
-- Root directory structure is clear, no obvious multi-subsystem / monorepo characteristics
-- Existing documentation largely matches the code
-
-### Step 3: Create Files by Priority
-
-#### 3.1 Output Priority
-
-Create in the following order, ensuring core file quality first:
-
-**First priority (required):**
-1. `AGENTS.md` — Project overview and navigation entry (auto-loaded, doubles as guide)
-2. `.ai/instructions/ai-workflow.md` — Documentation update standards
-3. Core instructions (2–4 high-value standards files)
-4. `MEMORY.md` — Development progress tracking
-
-**Second priority (as needed):**
-5. `.ai/docs/` — Feature design documents
-6. `.ai/skills/` — High-frequency skills (2–3)
-7. `.ai/agents/` — At least one read-only review Agent
-8. `.ai/prompts/` — Common Prompt templates
-
-**Third priority (editor adapters):**
-9. `.github/copilot-instructions.md` — Copilot repo-level entry
-10. `.github/instructions/*.instructions.md` — Copilot path-level rules
-11. `.cursor/rules/*.mdc` — Cursor rule entries
-
-#### 3.2 Safe Write Rules
-
-- If a target file already exists, prefer to **merge and supplement** rather than blindly overwrite. When merging, preserve the original file structure and fill in missing sections; if original content conflicts with current analysis, keep the original text and mark with `<!-- TBD -->`
-- Write uncertain content as `<!-- TBD -->` — do not disguise it as confirmed conclusions
-- Specific skill / agent / prompt / doc files are created as needed, but **all directories must be created**
-- Each on-demand directory (docs / skills / agents / prompts) must contain a `README.md` explaining the directory's purpose, file naming conventions, and creation criteria — so users aren't confused by the directory's existence
-- Apart from directory READMEs, do not create placeholder business files just to fill the structure; on-demand files should only be created when supported by project evidence
-- If the project already has similar documentation, new documents should **link to existing docs** rather than duplicate descriptions
-
-#### 3.3 File Structure
-
-All directories must be created. Files marked `[as needed]` are created based on actual project requirements.
-
-```
-AGENTS.md                     — Project overview and navigation entry (root, ≤300 lines, auto-loaded)
-MEMORY.md                     — Development progress tracking (root directory)
-.ai/
-  instructions/               — Domain-specific coding standards
-    ai-workflow.md            — Documentation update standards (required)
-    *.md                      — Other standards files (as needed)
-  docs/                       — Feature design and tracking documents
-    README.md                 — Directory guide: purpose, file naming conventions, creation criteria
-    changelog.md              — MEMORY.md history archive index (as needed)
-    archive/                  — Archive for invalidated prompts / skills / docs (as needed)
-    *.md                      — Design documents (as needed)
-  skills/                     — Reusable operation templates
-    README.md                 — Directory guide: what skills are, extraction criteria, structure requirements
-    <skill-name>/SKILL.md     — Specific skills (as needed)
-  agents/                     — Custom Agents
-    README.md                 — Directory guide: Agent definition format, tool restriction guidelines
-    <name>.agent.md           — Specific Agents (as needed)
-  prompts/                    — Prompt shortcut templates
-    README.md                 — Directory guide: Prompt format requirements, referencing conventions
-    <name>.prompt.md          — Specific Prompts (as needed)
+```text
+AGENTS.md                     # Project guide and auto-loaded entry point
+MEMORY.md                     # Current phase, completed items, pending confirmations, and change log
+AI_BOARD.md                   # The only active AI collaboration board
+.ai/                          # Source-of-truth AI documentation system
+  instructions/               # Domain-specific standards
+  docs/                       # Stable docs, closed records, phase summaries, archives
+  skills/                     # Reusable skills
+  agents/                     # Custom Agents
+  prompts/                    # Prompt templates
+.github/                      # Thin Copilot adapter layer
+.cursor/                      # Thin Cursor adapter layer
 ```
 
-> Deep-review workflow artifacts (`tests/`, `deep-review.agent.md`, `deep-review.prompt.md`, and the `## Review Log` section in `MEMORY.md`) are an **opt-in capability initiated by the user**. **Do not create them by default and do not ask about them proactively.** Create them incrementally per the "Deep-Review Workflow Artifacts" section only when the user explicitly requests it (e.g., "enable review workflow", "add deep review", `/review`).
+`AI_BOARD.md` must live beside `MEMORY.md` and must be the only active collaboration board. `.ai/docs/` only stores stable documents, closed records, phase summaries, and archive materials. It must not carry open/blocked work items or create a second active board.
 
-### Step 4: Format Requirements for Each File
+## Execution Mode
 
-#### AGENTS.md (root directory — sole auto-loaded entry point)
+Default to a two-round flow: in the first round, only scan the project and output an analysis report; do not create or modify any files. After the user confirms the report, enter the second round to initialize or maintain files.
 
-AGENTS.md is the file auto-loaded by editors (Copilot / Cursor, etc.) for every conversation, so it serves dual roles: "project overview" and "navigation guide". A separate `.ai-instructions` guide file is no longer created.
+Even if the user's first request says "initialize", "create", or "generate", you must first output the report and wait for a second confirmation. Only after the user explicitly confirms, for example "confirm", "start initialization", "create according to the report", or "continue", may you write files.
 
-- Title: `# Project Guidelines`
+If the user explicitly asks for "analysis only", "report first", or "read-only mode", output only the analysis report, do not create or modify files, and do not proactively enter initialization.
 
-**Top half — Project summary:**
-- Project positioning (1-2 sentences)
-- Tech stack (list)
-- Core module overview (table — list core modules only, omit non-core)
-- Core conventions (4-5 items)
+When executing after confirmation, if `MEMORY.md` or `AI_BOARD.md` does not exist, do not stop. Treat the project as new or partially initialized, create the root collaboration files first, then create the `.ai/` source-of-truth documentation system.
 
-**Bottom half — Documentation navigation:**
-- **Required reading**: List MEMORY.md → core instructions in order of importance (only the top 2–3, with a one-line description each)
-- **On-demand resources**: A compact table listing key files under `.ai/` docs / skills / agents / prompts with trigger conditions (YAML frontmatter descriptions assist discovery; only list the most frequently used items here)
-- **Mandatory workflow**: What to read before starting → update MEMORY.md after completing
-- **Language requirements**
+When executing after confirmation, if files already exist, merge and supplement them. Do not blindly overwrite. Preserve conflicting original content and mark it with `<!-- TBD -->`.
 
-Move detailed content to `.ai/docs/`; AGENTS.md serves only as index and navigation. Keep under 300 lines — it's loaded in full for every conversation.
+## Step 1: Scan the Project
 
-#### .ai/instructions/*.md (coding standards)
-- Each file must have YAML frontmatter:
-  ```yaml
-  ---
-  description: "Use when: trigger keyword description"
-  applyTo: "glob pattern"    # Optional, auto-attach by file type
-  ---
-  ```
-- One file per concern (backend/frontend/API/testing — don't mix)
-- Content should be concise and actionable; use lists, not long paragraphs
-- For multi-language projects, split by language or domain
-- Must create an `ai-workflow.md` defining documentation update standards
+Define the scan boundary first.
 
-#### .ai/skills/<name>/SKILL.md (skill templates)
-- Must have YAML frontmatter:
-  ```yaml
-  ---
-  name: skill-name           # Must match directory name
-  description: "Use when: keyword-rich trigger description"
-  argument-hint: "input hint"
-  ---
-  ```
-- Body includes: applicable scenarios, project conventions (with code examples), step-by-step procedures, key constraints
-- **Skill extraction threshold**: Only extract as a skill when the operation meets ALL of the following:
-  - A repeating pattern that appears 3+ times in the project
-  - Has clear inputs and outputs
-  - Steps are stable and reproducible
-  - Contains project-specific constraints or conventions
-  - Can be reused for future similar tasks
-- Do not create skills for generic operations with no project-specific characteristics (e.g., "read code", "fix bug")
+Ignore directories and files:
 
-#### .ai/agents/<name>.agent.md (custom Agents)
-- Must have YAML frontmatter:
-  ```yaml
-  ---
-  description: "Use when: trigger description"
-  name: "agent-name"
-  tools: [read, search]      # Minimal tool set
-  ---
-  ```
-- Body defines: role positioning, scope of responsibilities, constraints (what NOT to do), specific checklists or work steps
-- Create at least one read-only review Agent (tools: [read, search])
-- `tools` is a document-level capability constraint declaration expressing the minimal required capabilities — it does not depend on any specific editor's implementation
+- `node_modules`
+- `dist`
+- `build`
+- `.next`
+- `coverage`
+- `vendor`
+- `generated`
+- `__pycache__`
+- `.cache`
+- lock files
+- build artifacts, dependency directories, runtime caches, generated code
 
-#### .ai/prompts/<name>.prompt.md (Prompt templates)
-- Must have YAML frontmatter:
-  ```yaml
-  ---
-  description: "One-line purpose description"
-  agent: "agent"
-  tools: [read, edit, search]
-  ---
-  ```
-- Body uses Markdown links to reference related instructions and SKILL.md files
-- Create Prompts for the 3–5 most common operations in the project; if the project has fewer scenarios, fewer than 3 is acceptable — do not create low-value templates just to meet a quota
+Read first:
 
-#### MEMORY.md (development progress)
-- Include: current phase, completed items, AI engineering status checklist, follow-up suggestions, **change log**
-- Mark last update date in file header
-- Keep under 100 lines; archive excess to `.ai/docs/changelog.md`
-- **Change log entry format**: one line per entry, short and clear, must include the model name and a timestamp precise to the minute
-  ```
-  - YYYY-MM-DD HH:MM | <model-name> | <one-sentence description of the change>
-  ```
-  - Use local timezone, minute precision (do not use date-only)
-  - `model-name` identifies the model that made the change, e.g. `claude-opus-4.7`, `gpt-5`, `gemini-2.5-pro`
-  - Description ≤ 80 characters; no multi-paragraph text; collapse multi-file changes into a single entry
-- When the deep-review workflow is enabled, add a separate `## Review Log` section, one line per round (see deep-review section below)
-
-#### Deep-Review Workflow Artifacts (created only when the user initiates it; not created by default)
-
-##### tests/ directory
-- Reuse the existing test directory and framework when present; otherwise create one per language convention
-- `tests/README.md` must state: test framework used, unified run command, directory organization, expected coverage
-- `ai-review/` (or equivalent subdirectory) holds regression tests added by the review workflow; filenames must be traceable to the triggering review item
-
-##### .ai/agents/deep-review.agent.md
-- frontmatter `tools` minimum set: `[read, search, edit, run]` (`run` is required to execute tests)
-- Fixed 5-step loop, executed strictly in order:
-  1. **Review** — produce an issue list based on `.ai/instructions/` and the latest diff
-  2. **Add tests** — write tests under `tests/` for uncovered critical paths
-  3. **Run tests** — execute the project test command and collect failures
-  4. **Fix failures** — minimal fix targeting failures; **never bypass failures by deleting or skipping tests**
-  5. **Review again** — return to step 1, until no new issues and all tests pass
-- Exit condition: two consecutive rounds with no new issues and all tests green
-- At the end of each round, append one entry to the `## Review Log` section in `MEMORY.md`
-
-##### .ai/prompts/deep-review.prompt.md
-- References `deep-review.agent.md` and related instructions
-- Provides a trigger entry (e.g., `/review` or a one-line trigger)
-
-##### MEMORY.md Review Log format
-```
-## Review Log
-- YYYY-MM-DD HH:MM | <model-name> | round <N> | <one-sentence summary of changes and conclusion>
-```
-- Minute precision; `round N` marks the current loop iteration; the conclusion must explicitly state "pass / continue next round"
-
-### Step 5: Content Quality Checklist
-
-After creation, self-check:
-
-#### Format Checks
-- [ ] AGENTS.md ≤ 300 lines, top half is project summary, bottom half is navigation guide
-- [ ] All instructions/skills/agents/prompts have correct YAML frontmatter
-- [ ] Skills' `name` field matches their directory name
-- [ ] All descriptions use "Use when: ..." format with rich keywords
-- [ ] Every file listed in AGENTS.md navigation section actually exists
-- [ ] MEMORY.md doesn't reference non-existent files
-- [ ] No content duplication between instructions (especially with AGENTS.md)
-- [ ] Each Agent's tools are the minimal necessary set, not all tools
-- [ ] Mandatory workflow requires updating MEMORY.md after completion
-- [ ] MEMORY.md change-log entries follow the format (model name + minute-precision timestamp, single concise line)
-- [ ] Deep-review artifacts are not created by default; only when the user initiates them, `tests/`, `deep-review.agent.md`, `deep-review.prompt.md`, and the `## Review Log` section in `MEMORY.md` all exist
-
-#### Content Credibility Checks
-- [ ] Each instruction can trace to at least one evidence source in the project (code, config, or tests)
-- [ ] Each skill corresponds to at least one real high-frequency development workflow
-- [ ] Each prompt references actually existing instructions or skills
-- [ ] Module breakdown matches the project's actual directory structure and entry files
-- [ ] Unconfirmed content is explicitly marked as `<!-- TBD -->`, not disguised as established fact
-- [ ] Build artifacts, generated code, and legacy remnants are not used as current standards evidence
-
-#### Adapter Layer Checks
-- [ ] Adapter files contain no full specification text — only navigation and entry points
-- [ ] Every `.ai/` source file referenced by an adapter file actually exists
-- [ ] `applyTo` in `.github/instructions/*.instructions.md` matches the corresponding `.ai/instructions/*.md` coverage
-- [ ] `globs` in `.cursor/rules/*.mdc` matches the corresponding `.ai/instructions/*.md` coverage
-- [ ] Each adapter file is shorter than its corresponding source file
-
-### Completion Verification
-
-After creation, output the following to close this round:
-1. List of created files (with paths)
-2. Self-check results summary (passed / failed items)
-3. Summary of items requiring confirmation
-4. Follow-up suggestions (if there is a backlog or items to supplement)
-
-### Maintenance and Evolution
-
-To ensure the `.ai/` system doesn't become outdated:
-- Define in `ai-workflow.md`: which project changes must trigger instruction updates (e.g., tech stack migration, directory restructuring, new modules)
-- Archive invalidated prompts and skills to `.ai/docs/archive/` promptly — do not leave them in active directories
-- Archive MEMORY.md content exceeding 100 lines to `.ai/docs/changelog.md`
-- After any major refactoring, re-evaluate the accuracy of the `.ai/` system
-
-### Large Project Adaptation
-
-If the project is a monorepo or contains multiple subsystems:
-- Root-level `.ai/` stores universal standards and navigation
-- Each sub-project/sub-module can have its own local `.ai/instructions/`
-- Root directory retains only cross-subsystem shared standards and navigation index
-- Subsystem-specific standards should not be crammed into root-level instructions
-- When root-level standards conflict with subsystem-local standards, the subsystem-local standards take precedence within their scope; root-level standards only provide shared constraints
-
-### Editor Adapter Layer
-
-The `.ai/` system is the source of truth containing all specification content. To improve native rule discovery for Copilot and Cursor, add a thin adapter entry layer.
-
-#### General Principles
-
-- `.ai/` holds all content; adapter layers only write short entries — never a second copy of specifications
-- Adapter files' job is to "tell the editor which source files to read" — not to duplicate rules
-- Adapter files must always be shorter than their source; keep each under 10–20 lines
-- Only modify source files; sync adapter layers only when source files are renamed or paths change
-
-#### Copilot Adapter (required)
-
-Copilot natively recognizes `.github/copilot-instructions.md` (repo-level) and `.github/instructions/*.instructions.md` (path-level).
-
-**`.github/copilot-instructions.md`**:
-- Keep to 10–20 lines
-- Content: read AGENTS.md first (project overview and navigation guide are already in it), information source priority, TBD marking rule, update MEMORY.md after work, language requirements
-- No specific coding standards
-
-**`.github/instructions/*.instructions.md`**:
-- Create adapter files only for core `.ai/instructions/*.md` (2–4 files) — do not mirror all
-- Filename must end with `.instructions.md`
-- Must have YAML frontmatter with `applyTo` matching the source file's `applyTo` coverage
-- Body: which source files to read + 2–4 key constraints only
-
-Example:
-```md
----
-applyTo: "**/*.ts,**/*.tsx,src/frontend/**"
----
-
-Read `AGENTS.md` and `.ai/instructions/frontend.md` before editing these files.
-
-Rules:
-- Follow existing component patterns before introducing new abstractions.
-- Keep changes minimal and consistent with nearby files.
-- Update related tests when behavior changes.
-- Mark uncertain decisions as `<!-- TBD -->`.
-```
-
-#### Cursor Adapter (recommended)
-
-Cursor recognizes rule files under `.cursor/rules/*.mdc`.
-
-**`.cursor/rules/00-core.mdc`**:
-- Set `alwaysApply: true`, `globs: ["**/*"]`
-- Content mirrors `copilot-instructions.md`: read AGENTS.md first (navigation guide is already in it), same core constraints
-
-**`.cursor/rules/<domain>.mdc`**:
-- Create only for core domains (2–4 files) — do not mirror all
-- Set `alwaysApply: false`, use `globs` matching the source file's `applyTo`
-- Body: which source files to read + 2–4 key constraints only
-
-Example:
-```md
----
-description: Frontend file editing rules
-globs: ["**/*.tsx", "**/*.jsx", "src/frontend/**"]
-alwaysApply: false
----
-
-Before editing these files, read:
 - `AGENTS.md`
-- `.ai/instructions/frontend.md`
+- `MEMORY.md`
+- `AI_BOARD.md`
+- Root README
+- Package/build manifests: `package.json` / `go.mod` / `Cargo.toml` / `pom.xml`, etc.
+- Entry files
+- Core business directories
+- Test directories
+- CI configuration and build scripts
 
-Rules:
-- Reuse existing UI patterns before creating new abstractions.
-- Keep props and state handling consistent with nearby files.
-- Update related tests when UI behavior changes.
+Analyze:
+
+- Project purpose and core responsibilities
+- Tech stack, frameworks, build tools
+- Module breakdown and responsibilities
+- Existing coding conventions and architecture decisions
+- Current phase: initial build, active development, pilot, maintenance, pre-delivery, etc.
+- High-frequency development operation patterns
+- Whether existing AI collaboration docs are stale, duplicated, or conflicting
+
+Information source priority:
+
+```text
+Runtime config / build scripts / CI config / current source structure > tests > README > other historical docs > comments > issues / commits
 ```
 
-#### Codex Adapter (native)
+Large project strategy:
 
-Codex natively reads `AGENTS.md` from the project root and all parent directories. No additional adapter files are required.
+- If the project has more than 20 core modules, obvious multiple subsystems, complex directory depth, or scattered entry points that prevent reliable global understanding in one pass, cover core modules first.
+- Judge core modules by entry reference chains, main business directories, build config, CI reach, test coverage density, and modules explicitly listed in README.
+- Put uncovered modules into `MEMORY.md` as pending confirmations or follow-up suggestions.
 
-**`AGENTS.md`**:
-- Serves directly as the Codex project context entry — no extra config files needed
-- Place at repository root (already created in Step 3 as the first-priority file)
+Degradation strategy:
 
-#### Adapter Mapping
+- If conventions are inconsistent, record the current state instead of forcing unification.
+- If an architecture decision cannot be confirmed, mark it with `<!-- TBD -->`.
+- If historical docs conflict with source code, build, CI, or tests, prefer the latter and explain the conflict source.
 
-| Source | Copilot Adapter | Cursor Adapter | Codex Adapter |
-|--------|-----------------|----------------|----------------|
-| `AGENTS.md` (overview + navigation) | Reused directly + referenced in `.github/copilot-instructions.md` | Reused directly + referenced in `00-core.mdc` | Used directly — no adapter needed |
-| `.ai/instructions/<domain>.md` | `.github/instructions/<domain>.instructions.md` | `.cursor/rules/<domain>.mdc` | *(not applicable)* |
-| `MEMORY.md` | Required update in repo-level entry | Required update in core rule | Required update in AGENTS.md workflow |
+## Step 2: Output the Analysis Report and Wait for Confirmation
 
-#### Sync Discipline
+After scanning, output the report and stop. Do not enter file creation or maintenance. The report must include:
 
-1. **Only modify source**: Specification changes go to `.ai/` first — never directly to adapter layers
-2. **Reference sync**: Only sync adapter references when source files are renamed or paths change
-3. **No detail in adapters**: Adapters only provide navigation, triggers, and minimal hard rules
+1. Project understanding summary: purpose, tech stack, core modules, current phase, core conventions.
+2. Evidence sources: at least 1 traceable source for each key judgment, such as a directory, config, entry file, test, or existing document.
+3. Initial initialization-state judgment: new / partially initialized / initialized, with evidence.
+4. Proposed files to create or maintain: root files, `.ai/` source documents, Copilot / Cursor / Trae thin adapters.
+5. Expected content summary for each file: one sentence describing its purpose and main content.
+6. Identified uncertainties, conflicts, and items requiring confirmation.
+7. For large projects, this round's coverage scope and follow-up backlog.
+8. Ask explicitly whether the user confirms continuing with initialization or maintenance according to the report.
 
-### Universal Principles
+The report must end with:
 
-- **Evidence first**: Documentation content must be based on source code, build config, tests, and CI — never fabricated
-- **Concise first**: AGENTS.md and instructions consume context window — shorter is better
-- **Keyword-driven discovery**: description is the sole basis for Agent file discovery — keywords must be accurate
-- **One file, one concern**: Don't mix test standards with API standards
-- **Show don't tell**: Use brief code examples rather than long paragraphs
-- **Link don't embed**: Put detailed content in docs; main files only index
-- **Cross-editor compatible**: Don't rely on editor-specific mechanisms (like Hooks); file formats must be universal
-- **Safe writes**: Prefer supplementing existing files over overwriting; mark uncertainties as TBD; never create empty files
+```text
+Please confirm whether to continue initialization or maintenance according to the report above. I will not create or modify files before confirmation.
+```
+
+Before the user confirms, the following steps are prohibited.
+
+## Step 3: Determine Initialization State
+
+Check these files:
+
+```text
+AGENTS.md
+MEMORY.md
+AI_BOARD.md
+.ai/instructions/ai-workflow.md
+.ai/docs/README.md
+.ai/skills/README.md
+.ai/agents/README.md
+.ai/prompts/README.md
+.github/copilot-instructions.md
+.cursor/rules/
+```
+
+Execute according to state:
+
+- New project: most core files do not exist. Create `AGENTS.md`, `MEMORY.md`, and `AI_BOARD.md` first, then `.ai/`, then editor adapters.
+- Partially initialized project: add only missing parts and merge with existing content.
+- Initialized project: update only stale, conflicting, missing, or source-inconsistent content.
+
+## Step 4: Create or Maintain Root Files
+
+### `AGENTS.md`
+
+`AGENTS.md` is the single project guide and auto-loaded entry point. Keep it under 300 lines. Use this title:
+
+```md
+# Project Guidelines
+```
+
+It must include:
+
+- Project Summary: 1 to 2 sentences describing the project.
+- Technology Stack: languages, frameworks, build tools, runtime dependencies.
+- Core Modules: a table listing only key modules.
+- Core Conventions: 4 to 8 hard project conventions.
+- Required Reading: at least `MEMORY.md`, `AI_BOARD.md`, and core `.ai/instructions/*.md`.
+- On-Demand Resources: key files and trigger conditions under `.ai/docs/`, `.ai/skills/`, `.ai/agents/`, `.ai/prompts/`.
+- AI Identity Model: define `frontend-ai`, `backend-ai`, `test-ai`, and `review-ai`.
+- Mandatory Workflow: read memory and board before editing, declare identity before acting, update memory after substantive changes, update the board for collaboration or blockers.
+- Test Gate: list test, lint, build, smoke, E2E, and lab validation requirements according to the actual tech stack.
+- Language: specify language requirements for code, logs, config, protocol fields, and user-facing docs.
+
+`AGENTS.md` is only a summary and navigation file. Do not copy detailed standards into it.
+
+### `MEMORY.md`
+
+`MEMORY.md` is current project memory, not a complete historical encyclopedia. It must include:
+
+```md
+# MEMORY
+
+Last updated: YYYY-MM-DD HH:MM <timezone>
+
+## Current Phase
+
+## Completed Items
+
+## AI Engineering Status Checklist
+
+## Follow-up Suggestions
+
+## Pending Confirmation
+
+## Change Log
+```
+
+Requirements:
+
+- The current phase must be based on the real project state.
+- Prefer keeping it under 100 lines. Archive old history to `.ai/docs/changelog.md` or `.ai/docs/archive/` when it grows too long.
+- Change log entries use one line:
+
+```text
+- YYYY-MM-DD HH:MM | <model-name> | <one-sentence summary of this change>
+```
+
+- Use local timezone and minute precision.
+- Keep descriptions under 80 characters.
+- Mark uncertain content with `<!-- TBD -->`.
+
+### `AI_BOARD.md`
+
+`AI_BOARD.md` is the only active collaboration board. It must include:
+
+```md
+# AI Collaboration Board
+
+## File Model
+
+## AI Identities
+
+## Active Board
+
+## Board Rules
+
+## Activity Log Format
+
+## Activity Log
+```
+
+Active Board table format:
+
+```md
+| ID | Owner | Type | Status | Item | Next Action |
+| --- | --- | --- | --- | --- | --- |
+```
+
+Valid identities:
+
+| Identity | Owner | Scope | Boundary |
+| --- | --- | --- | --- |
+| Frontend AI | `frontend-ai` | Frontend UI, Wails/IPC call wrappers, trilingual copy, visuals, and interactions. | Does not implement sync core; does not directly access RabbitMQ/MySQL/HTTP. |
+| Backend AI | `backend-ai` | Backend, services, sync core, config, DTOs, installers, MCP. | Frontend-visible API/DTO/error semantic changes must be written to the board. |
+| Test AI | `test-ai` | Unit tests, smoke, E2E, lab, load tests, release-gate evidence. | Does not change product behavior by default; test fixture fixes must state scope. |
+| Review AI | `review-ai` | Architecture review, launch assessment, risk list, cross-module adjustments. | List risks and gaps first; cross-identity edits must state reason and impact. |
+
+Board Rules must include:
+
+1. Declare identity before starting, then read Active Board.
+2. New issues must be added to Active Board and assigned a valid `Owner`.
+3. When resolved, change status to `closed` and append Activity Log.
+4. When blocked, change status to `blocked` and state what is missing.
+5. For API, DTO, error semantics, or page-scope changes, update Active Board first, then sync stable contract docs.
+6. `test-ai` must record validation commands, pass/fail results, and reasons for skipped runs.
+7. `review-ai` must list risks, gaps, and blockers first.
+8. Final replies must state identity, handled Board items, and remaining open/blocked items.
+9. When closed history grows too long, `review-ai` archives it to `.ai/docs/archive/` or a phase summary.
+
+Activity Log format:
+
+```text
+- YYYY-MM-DD HH:mm | <frontend-ai/backend-ai/test-ai/review-ai> | <question/decision/answer/blocker/review/test> | <scope> | <open/closed/blocked>
+```
+
+## Step 5: Create or Maintain the `.ai/` Source-of-Truth Documentation System
+
+Required directories:
+
+```text
+.ai/
+  instructions/
+  docs/
+    archive/
+  skills/
+  agents/
+  prompts/
+```
+
+Every directory must have a `README.md` explaining:
+
+- Directory purpose
+- File naming conventions
+- When to create new files
+- When not to create new files
+
+Required files:
+
+```text
+.ai/instructions/ai-workflow.md
+.ai/docs/README.md
+.ai/skills/README.md
+.ai/agents/README.md
+.ai/prompts/README.md
+```
+
+Create as needed:
+
+```text
+.ai/instructions/<domain>.md
+.ai/docs/<topic>.md
+.ai/skills/<skill-name>/SKILL.md
+.ai/agents/<name>.agent.md
+.ai/prompts/<name>.prompt.md
+```
+
+As-needed files must be backed by project evidence. Do not create hollow files just to fill structure.
+
+### `.ai/instructions/*.md`
+
+Must have frontmatter:
+
+```yaml
+---
+description: "Use when: trigger keyword description"
+applyTo: "glob pattern"
+---
+```
+
+Requirements:
+
+- One file handles one concern, such as backend, frontend, API, testing, or sync architecture.
+- Keep content short and actionable.
+- Do not copy the project summary from `AGENTS.md`.
+- Must explain the relationship with `MEMORY.md` and `AI_BOARD.md`.
+- Frontend, backend, test, or review collaboration instructions must require reading root `AI_BOARD.md`.
+
+### `.ai/docs/*.md`
+
+Purpose:
+
+- Stable design documents
+- Architecture notes
+- API contracts
+- Phase summaries
+- Closed records
+- Archive materials
+
+Prohibited:
+
+- Do not create an active board under `.ai/docs/`.
+- Do not maintain open/blocked work items under `.ai/docs/`.
+- Move invalidated content into `.ai/docs/archive/`.
+
+### `.ai/skills/<skill-name>/SKILL.md`
+
+Must have frontmatter:
+
+```yaml
+---
+name: skill-name
+description: "Use when: keyword-rich trigger description"
+argument-hint: "input hint"
+---
+```
+
+Create a skill only when all conditions are met:
+
+- The project has a repeated operation that appears 3+ times.
+- Inputs and outputs are clear.
+- Steps are stable and reproducible.
+- It contains project-specific constraints.
+- It can be reused for future similar tasks.
+
+Do not create generic hollow skills such as "read code" or "fix bug".
+
+### `.ai/agents/<name>.agent.md`
+
+Must have frontmatter:
+
+```yaml
+---
+description: "Use when: trigger description"
+name: "agent-name"
+tools: [read, search]
+---
+```
+
+Requirements:
+
+- Create at least one read-only review Agent.
+- Define role, responsibilities, boundaries, and what it does not do.
+- Use the minimum necessary tool set.
+- Review Agents are read-only by default.
+- If an Agent relates to the identity model, it must correspond to `frontend-ai`, `backend-ai`, `test-ai`, or `review-ai`.
+
+### `.ai/prompts/<name>.prompt.md`
+
+Must have frontmatter:
+
+```yaml
+---
+description: "One-sentence purpose"
+agent: "agent"
+tools: [read, edit, search]
+---
+```
+
+Requirements:
+
+- Use Markdown links to reference related instructions / skills / agents.
+- Create prompts for the project's 3 to 5 most common operations.
+- Do not create low-value prompts just to fill a quota.
+- If the project has few scenarios, fewer than 3 prompts is acceptable.
+- Identity entry prompts should require declaring identity first and reading `AI_BOARD.md`.
+
+## Step 6: Deep-Review Workflow
+
+Do not create the deep-review workflow by default. Create it incrementally only when the user explicitly says "enable review workflow", "add deep review", `/review`, "create deep-review Agent", or equivalent trigger phrases:
+
+```text
+.ai/agents/deep-review.agent.md
+.ai/prompts/deep-review.prompt.md
+tests/README.md or an ai-review note under the existing test directory
+## Review Log section in MEMORY.md
+```
+
+The deep-review Agent's minimum tools are `[read, search, edit, run]`, and its loop is fixed:
+
+1. Review: output issue list based on `.ai/instructions/`, `AI_BOARD.md`, and recent diff.
+2. Add tests: add tests for uncovered critical paths; do not write empty tests.
+3. Run tests: run project test commands and record failures.
+4. Fix failures: minimally fix failures; never delete or skip tests to manufacture a pass.
+5. Review again: return to review until two consecutive rounds have no new issues and all tests pass.
+
+At the end of each round, append to `MEMORY.md` `## Review Log`:
+
+```text
+- YYYY-MM-DD HH:MM | <model-name> | round <N> | <one-sentence summary and conclusion: pass / continue next round>
+```
+
+## Step 7: Editor Adapter Layers
+
+`.ai/` is the source of truth. Editor adapter layers are thin entries only and must not copy full standards.
+
+### Copilot
+
+Create or maintain:
+
+```text
+.github/copilot-instructions.md
+.github/instructions/*.instructions.md
+```
+
+`.github/copilot-instructions.md`:
+
+- 10 to 20 lines.
+- Only write the core entry.
+- Must require reading `AGENTS.md` first.
+- Must mention `MEMORY.md` and `AI_BOARD.md`.
+- Must not copy full standards.
+
+`.github/instructions/*.instructions.md`:
+
+- Create only 2 to 4 adapters for core `.ai/instructions/*.md`.
+- Must have frontmatter:
+
+```yaml
+---
+applyTo: "glob pattern"
+---
+```
+
+- Body only states which source files to read and 2 to 4 hard rules.
+
+### Cursor
+
+Create or maintain:
+
+```text
+.cursor/rules/00-core.mdc
+.cursor/rules/<domain>.mdc
+```
+
+`00-core.mdc`:
+
+- `alwaysApply: true`
+- `globs: ["**/*"]`
+- Only write the entry, not full standards.
+
+Domain rules:
+
+- `alwaysApply: false`
+- `globs` matches the corresponding `.ai/instructions/*.md` `applyTo`.
+- Only write source links and a few hard rules.
+
+### Codex
+
+Codex natively reads root `AGENTS.md`; no extra adapter file is needed.
+
+### Trae
+
+Trae reuses `AGENTS.md` and the `.ai/` source by default. Create a thin Trae entry only if the project already has a native Trae rules directory or the user explicitly asks for one.
+
+Trae adapter rules:
+
+- If a native Trae rules directory exists, preserve its structure and add only source links.
+- If the Trae rules path cannot be confirmed, mark `<!-- TBD -->` and do not invent a directory.
+- The Trae adapter layer must not copy full standards.
+- The Trae adapter layer must not create a second active board.
+
+## Step 8: Old Board Migration
+
+If an old active board is found at:
+
+```text
+.ai/docs/ai-collaboration-log.md
+```
+
+Handle it as follows:
+
+- Migrate still-valid open/blocked items into root `AI_BOARD.md`.
+- Keep only a migration notice in the old file.
+- State clearly: do not add new open/blocked items to the old file.
+- Update all guides to point to root `AI_BOARD.md`.
+
+Old file content example:
+
+```md
+# AI Collaboration Board moved
+
+This file is no longer the active board. The active AI collaboration board has moved to the repository root:
+
+AI_BOARD.md
+
+Rules:
+- `AI_BOARD.md` is the only active board.
+- `.ai/docs/` only stores stable docs, closed records, and archive materials.
+- Do not add open/blocked items to this file.
+```
+
+## Step 9: Safe Write Rules
+
+- Prefer merging existing files. Do not blindly overwrite.
+- If original content conflicts with current analysis, preserve it and mark `<!-- TBD -->`.
+- Uncertain content must be explicitly marked `<!-- TBD -->`.
+- If similar docs already exist, link to them instead of duplicating large sections.
+- Do not create empty business documents.
+- Do not use build artifacts, caches, or generated code as current standards evidence.
+- When paths change, sync all references.
+- Adapter layers must always be shorter than the source files.
+- Do not create an active board that competes with `AI_BOARD.md`.
+
+## Step 10: Self-Check After Completion
+
+Format checks:
+
+- `AGENTS.md` exists and is under 300 lines.
+- `MEMORY.md` exists and has a last-updated timestamp.
+- `AI_BOARD.md` exists and is the only active board.
+- `.ai/` directory structure is complete.
+- Every README explains purpose and creation criteria.
+- instructions / skills / agents / prompts have correct frontmatter.
+- A skill's `name` matches its directory name.
+- descriptions use `Use when: ...`.
+- `.ai/docs/` has no active board.
+- `.ai/docs/ai-collaboration-log.md`, if present, is only a migration notice.
+- Copilot / Cursor / Trae adapter layers are entries only.
+- No references point to missing files.
+
+Content credibility checks:
+
+- Every instruction has project evidence.
+- Every skill corresponds to a real high-frequency workflow.
+- Every prompt references an existing instruction, skill, or agent.
+- Module breakdown matches actual directory structure and entry files.
+- All unconfirmed content is marked `<!-- TBD -->`.
+- Build artifacts, generated code, and legacy leftovers are not used as current standards evidence.
+
+Collaboration checks:
+
+- Active Board owners use only valid identities.
+- Active Board open/blocked items are clear.
+- Activity Log format is consistent.
+- Final reply states identity, handled Board items, and remaining open/blocked items.
+- Substantive changes have been written to `MEMORY.md`.
+- Collaboration, blockers, API, DTO, error semantics, or page-scope changes have updated `AI_BOARD.md`.
+
+Deep-review checks:
+
+- When deep review is not triggered, do not create `deep-review.agent.md`, `deep-review.prompt.md`, or review test directories.
+- When deep review is triggered, the review Agent, Prompt, test note, and `MEMORY.md ## Review Log` are all synced.
+
+## Completion Output
+
+Finally output:
+
+1. Judged project state: new / partially initialized / initialized.
+2. Created or updated file list.
+3. Current `AI_BOARD.md` open/blocked items.
+4. Self-check summary: passed and failed items.
+5. Pending confirmation summary.
+6. Follow-up suggestions.
