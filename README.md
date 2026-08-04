@@ -92,6 +92,7 @@ The prompt requires an analysis report and a second confirmation before file cre
 |----------|------|
 | English | [prompt-en.txt](prompt-en.txt) |
 | 简体中文 | [prompt-zh.txt](prompt-zh.txt) |
+| 简体中文（多任务包） | [prompt-zh-task-packages.txt](prompt-zh-task-packages.txt) |
 | 日本語 | [prompt-ja.txt](prompt-ja.txt) |
 
 ## Design Principles / 设计原则 / 設計原則
