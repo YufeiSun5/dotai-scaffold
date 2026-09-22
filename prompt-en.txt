@@ -1,595 +1,358 @@
-# AI Collaboration Documentation System Initialization Prompt
+# AI Project Design and Collaboration System Initialization Prompt
 
-You are an AI engineering expert. Initialize or maintain a complete AI collaboration documentation system for the current project.
+Establish or maintain actionable architecture, development, and testing constraints for the current project.
+The project may be implemented primarily by AI, so future AI agents must be able to determine clearly:
+where business rules belong, where to change code, how to verify changes, and what remains unfinished.
 
-## Goal
+The goal is not to generate as many documents as possible, but to let the software evolve sustainably,
+avoiding mixed responsibilities, duplicated rules, implicit dependencies, and unverifiable local patches.
 
-Establish a documentation structure that enables AI Agents to collaborate across editors, compatible with common tools such as Copilot, Cursor, Trae, and Codex. The system must cover:
+## 1. Execution Boundaries
 
-- Project guidance entry point
-- Current project memory
-- Active collaboration board
-- Domain-specific coding standards
-- Stable design documents and archives
-- Reusable skills
-- Custom Agents
-- Prompt templates
-- Thin editor adapter layers
+By default, start with read-only analysis, present a concrete proposal for user review, and then initialize the documentation.
 
-## Core File Model
+If the user has already explicitly approved a concrete proposal, do not request approval again.
+If the user requests analysis only, do not modify files.
+Initializing collaboration documentation does not automatically authorize product code refactoring, database migrations, or on-site configuration changes.
 
-Use the following file boundaries:
+For existing projects, identify and reuse the existing system first; do not blindly overwrite it.
+For new projects without source code, design from requirements and explicitly labeled assumptions; do not fabricate implementation evidence.
 
-```text
-AGENTS.md                     # Project guide and auto-loaded entry point
-MEMORY.md                     # Current phase, completed items, pending confirmations, and change log
-AI_BOARD.md                   # The only active AI collaboration board
-.ai/                          # Source-of-truth AI documentation system
-  instructions/               # Domain-specific standards
-  docs/                       # Stable docs, closed records, phase summaries, archives
-  skills/                     # Reusable skills
-  agents/                     # Custom Agents
-  prompts/                    # Prompt templates
-.github/                      # Thin Copilot adapter layer
-.cursor/                      # Thin Cursor adapter layer
-```
+## 2. Understand the Business Before Designing the Architecture
 
-`AI_BOARD.md` must live beside `MEMORY.md` and must be the only active collaboration board. `.ai/docs/` only stores stable documents, closed records, phase summaries, and archive materials. It must not carry open/blocked work items or create a second active board.
+Before starting, read existing AGENTS.md, MEMORY.md, AI_BOARD.md,
+README, build configuration, core source code, tests, and CI.
 
-## Execution Mode
+Ignore dependency directories, caches, and generated artifacts; read lockfiles when needed to confirm dependency versions.
 
-Default to a two-round flow: in the first round, only scan the project and output an analysis report; do not create or modify any files. After the user confirms the report, enter the second round to initialize or maintain files.
+First establish:
 
-Even if the user's first request says "initialize", "create", or "generate", you must first output the report and wait for a second confirmation. Only after the user explicitly confirms, for example "confirm", "start initialization", "create according to the report", or "continue", may you write files.
+1. Who the software serves and what problem it solves.
+2. Core business workflows and acceptance criteria.
+3. What belongs to this system and what external systems are responsible for.
+4. Who produces and owns the data, and who is allowed to modify it.
+5. What is live state, what is a persisted record, and what is a historical snapshot.
+6. Whether concurrency, offline operation, retries, asynchronous synchronization, or device control is involved.
+7. Deployment model, operating scale, performance, and reliability requirements.
+8. What is explicitly out of scope for now.
 
-If the user explicitly asks for "analysis only", "report first", or "read-only mode", output only the analysis report, do not create or modify files, and do not proactively enter initialization.
+Ask the user only about unknown conditions that would materially change the architecture.
+Record other conditions as verifiable assumptions; do not invent business rules.
 
-When executing after confirmation, if `MEMORY.md` or `AI_BOARD.md` does not exist, do not stop. Treat the project as new or partially initialized, create the root collaboration files first, then create the `.ai/` source-of-truth documentation system.
+Distinguish the following evidence categories:
 
-When executing after confirmation, if files already exist, merge and supplement them. Do not blindly overwrite. Preserve conflicting original content and mark it with `<!-- TBD -->`.
+- Current implementation: supported by source code, runtime configuration, and test evidence.
+- Target requirements: supported by user requirements and approved decisions.
+- Proposed adjustments: explicitly labeled as proposals, not presented as already implemented.
+- To be confirmed: missing facts and their consequences.
 
-## Step 1: Scan the Project
+When source code deviates from an approved design, record the deviation.
+Do not treat an implementation as a correct standard simply because the code already works that way.
 
-Define the scan boundary first.
+## 3. Choose an Architecture Appropriate to the Scale
 
-Ignore directories and files:
+Prefer a modular monolith unless independent deployment, isolation, scaling,
+or similar requirements actually call for multiple services.
 
-- `node_modules`
-- `dist`
-- `build`
-- `.next`
-- `coverage`
-- `vendor`
-- `generated`
-- `__pycache__`
-- `.cache`
-- lock files
-- build artifacts, dependency directories, runtime caches, generated code
+Divide modules by business capability, then define responsibilities within each module.
+Do not mechanically create every layer, interface, factory, and mapping object for every simple feature.
 
-Read first:
+Where applicable, define these responsibilities:
 
-- `AGENTS.md`
-- `MEMORY.md`
-- `AI_BOARD.md`
-- Root README
-- Package/build manifests: `package.json` / `go.mod` / `Cargo.toml` / `pom.xml`, etc.
-- Entry files
-- Core business directories
-- Test directories
-- CI configuration and build scripts
+### Presentation Layer
 
-Analyze:
+Owns input, interaction, user review, and display.
+Frontend validation supports user experience; the backend must also enforce critical rules.
+Call APIs through a shared client instead of scattering authentication and transport details.
 
-- Project purpose and core responsibilities
-- Tech stack, frameworks, build tools
-- Module breakdown and responsibilities
-- Existing coding conventions and architecture decisions
-- Current phase: initial build, active development, pilot, maintenance, pre-delivery, etc.
-- High-frequency development operation patterns
-- Whether existing AI collaboration docs are stale, duplicated, or conflicting
+### API / Transport Adapter Layer
 
-Information source priority:
+Owns authentication and authorization, request parsing, basic format validation, invoking business use cases,
+and mapping results and errors to interface responses.
+It must not gradually take on complex business workflows.
 
-```text
-Runtime config / build scripts / CI config / current source structure > tests > README > other historical docs > comments > issues / commits
-```
+The same business operation exposed through HTTP, MCP, CLI, or message entry points
+should reuse the same use case or business service rather than implement rules separately.
 
-Large project strategy:
+### Application Service Layer
 
-- If the project has more than 20 core modules, obvious multiple subsystems, complex directory depth, or scattered entry points that prevent reliable global understanding in one pass, cover core modules first.
-- Judge core modules by entry reference chains, main business directories, build config, CI reach, test coverage density, and modules explicitly listed in README.
-- Put uncovered modules into `MEMORY.md` as pending confirmations or follow-up suggestions.
+Owns use case orchestration, operation ordering, transaction coordination, idempotency,
+and invoking domain rules, persistence, and external systems.
 
-Degradation strategy:
+Define states such as success, failure, processing, and unknown outcome.
+Do not equate “request accepted” with “business operation completed.”
 
-- If conventions are inconsistent, record the current state instead of forcing unification.
-- If an architecture decision cannot be confirmed, mark it with `<!-- TBD -->`.
-- If historical docs conflict with source code, build, CI, or tests, prefer the latter and explain the conflict source.
+### Domain Layer
 
-## Step 2: Output the Analysis Report and Wait for Confirmation
+Owns business concepts, state transitions, and invariants that must always hold.
+Core rules should be testable with as little dependence as possible on HTTP, UI, databases, or vendor protocols.
 
-After scanning, output the report and stop. Do not enter file creation or maintenance. The report must include:
+Simple CRUD does not require a complex domain model.
 
-1. Project understanding summary: purpose, tech stack, core modules, current phase, core conventions.
-2. Evidence sources: at least 1 traceable source for each key judgment, such as a directory, config, entry file, test, or existing document.
-3. Initial initialization-state judgment: new / partially initialized / initialized, with evidence.
-4. Proposed files to create or maintain: root files, `.ai/` source documents, Copilot / Cursor / Trae thin adapters.
-5. Expected content summary for each file: one sentence describing its purpose and main content.
-6. Identified uncertainties, conflicts, and items requiring confirmation.
-7. For large projects, this round's coverage scope and follow-up backlog.
-8. Ask explicitly whether the user confirms continuing with initialization or maintenance according to the report.
+### Data Access Layer
 
-The report must end with:
+Owns queries, persistence mapping, transactions, database locks,
+uniqueness constraints, and conditional updates for concurrency control.
+It must not orchestrate workflows unrelated to data access.
 
-```text
-Please confirm whether to continue initialization or maintenance according to the report above. I will not create or modify files before confirmation.
-```
+### Infrastructure Layer
 
-Before the user confirms, the following steps are prohibited.
+Owns database connections, messaging protocols, file systems,
+external services, device communication, and runtime environment adapters.
 
-## Step 3: Determine Initialization State
+Vendor-specific protocols must not spread into general business rules.
 
-Check these files:
+Clearly diagram or list the allowed dependency directions:
+domain rules do not depend on UI, transport frameworks, or concrete infrastructure;
+application services use persistence and external capabilities through explicit boundaries;
+the composition root wires concrete implementations together.
 
-```text
+Introduce interfaces only when needed to isolate external dependencies, replace implementations, or test critical behavior.
+Do not create a matching interface for every class or function.
+
+### Make Layering an Executable Contract
+
+Layering defines responsibilities and dependencies; creating directories alone does not establish it.
+Build a layering contract from business modules and the actual implementation, recording at least:
+layer or boundary names, owned and forbidden responsibilities, actual code paths (labeled as planned when not implemented),
+public entry points and inputs/outputs, allowed and forbidden dependency directions, authoritative ownership of rules and data,
+and verification commands or inspection methods.
+
+Distinguish source-code dependencies from runtime calls and data flows; call order is not a dependency rule.
+Keep one authoritative implementation of each business rule. Modules collaborate through public contracts,
+without accessing another module's internals or bypassing its data ownership.
+Explain why any layer is merged or omitted and which boundaries still apply; do not add empty layers for appearance.
+
+Store the effective contract in an existing architecture document or a single authoritative document under .ai/docs/.
+Put actionable prohibitions and checks in .ai/instructions/ with a reference to that contract.
+AGENTS.md, relevant task templates, and tool entry points must specify its path and reading triggers.
+Record implementation deviations and pending issues in work items; do not promote temporary bypasses into permanent rules.
+
+## 4. Establish Key Design Constraints
+
+Address each relevant scenario; mark non-applicable items as such instead of expanding them mechanically.
+
+1. State ownership:
+   Identify the authoritative source of current state and how caches and replicas are updated.
+
+2. Saving and taking effect:
+   Determine whether saving a definition, applying runtime configuration, and executing an external action are separate operations;
+   define success for each.
+
+3. Consistency:
+   Identify changes that must share a transaction;
+   do not assume atomicity across databases or external devices.
+
+4. Concurrency:
+   Explain how to prevent duplicate operations, stale pages overwriting newer configuration, and state races.
+
+5. Retries:
+   Identify operations that can be retried safely;
+   explain how to query and reconcile an unknown outcome after a timeout.
+
+6. Asynchronous processing:
+   Specify whether queues are durable and how overload is handled;
+   identify the point at which data becomes durably persisted.
+
+7. History:
+   Identify configuration and data that must be frozen;
+   later changes must not silently alter historical meaning.
+
+8. Protocols:
+   Explain how external messages map to a unified internal representation;
+   define the interpretation of values, units, quality, and time.
+
+9. Security:
+   Define authentication, authorization, sensitive information protection, and necessary auditing.
+
+10. Compatibility:
+    Explain transitions between old and new interfaces, data structures, and versions;
+    specify where compatibility code belongs and when it may be removed.
+
+Each key constraint should identify its implementation location or planned location,
+and a test or inspection method.
+
+## 5. Walk Through Core Workflows Before Coding
+
+Choose at least two of the most critical business workflows:
+one user-initiated operation and one asynchronous or background workflow.
+If the project has no background workflow, choose another critical use case.
+
+List each step, including:
+
+- Entry point and identity;
+- Parameter and business validation;
+- Modules involved;
+- Data reads and writes;
+- Transaction and concurrency boundaries;
+- External calls;
+- Failure and recovery behavior;
+- How the outcome is confirmed;
+- Corresponding tests.
+
+If an operation requires duplicated business rules across entry points,
+or one module carries too many unrelated responsibilities, adjust the design first.
+
+## 6. Establish Lean Documentation with a Single Source of Truth
+
+Reuse or create:
+
 AGENTS.md
 MEMORY.md
 AI_BOARD.md
-.ai/instructions/ai-workflow.md
-.ai/docs/README.md
-.ai/skills/README.md
-.ai/agents/README.md
-.ai/prompts/README.md
-.github/copilot-instructions.md
-.cursor/rules/
-```
+.ai/instructions/
+.ai/docs/
 
-Execute according to state:
+Add only when genuinely needed:
 
-- New project: most core files do not exist. Create `AGENTS.md`, `MEMORY.md`, and `AI_BOARD.md` first, then `.ai/`, then editor adapters.
-- Partially initialized project: add only missing parts and merge with existing content.
-- Initialized project: update only stale, conflicting, missing, or source-inconsistent content.
+.ai/skills/
+.ai/agents/
+.ai/prompts/
+Editor adapter files
 
-## Step 4: Create or Maintain Root Files
+### AGENTS.md
 
-### `AGENTS.md`
+Keep it short as the project entry point and constraint summary.
+Include project boundaries, technology stack, module navigation, key architecture rules,
+required reading, verification commands, and operational boundaries.
 
-`AGENTS.md` is the single project guide and auto-loaded entry point. Keep it under 300 lines. Use this title:
+Do not copy complete design documents here.
 
-```md
-# Project Guidelines
-```
+### MEMORY.md
 
-It must include:
+Record only the current phase, summaries of effective decisions, recent outcomes, and necessary context.
+Archive lengthy completed history rather than appending logs indefinitely.
+AI_BOARD.md is authoritative for active issues; avoid maintaining multiple copies of their state.
 
-- Project Summary: 1 to 2 sentences describing the project.
-- Technology Stack: languages, frameworks, build tools, runtime dependencies.
-- Core Modules: a table listing only key modules.
-- Core Conventions: 4 to 8 hard project conventions.
-- Required Reading: at least `MEMORY.md`, `AI_BOARD.md`, and core `.ai/instructions/*.md`.
-- On-Demand Resources: key files and trigger conditions under `.ai/docs/`, `.ai/skills/`, `.ai/agents/`, `.ai/prompts/`.
-- AI Identity Model: define `frontend-ai`, `backend-ai`, `test-ai`, and `review-ai`.
-- Mandatory Workflow: read memory and board before editing, declare identity before acting, update memory after substantive changes, update the board for collaboration or blockers.
-- Test Gate: list test, lint, build, smoke, E2E, and lab validation requirements according to the actual tech stack.
-- Language: specify language requirements for code, logs, config, protocol fields, and user-facing docs.
+### AI_BOARD.md
 
-`AGENTS.md` is only a summary and navigation file. Do not copy detailed standards into it.
+The sole active work board.
+Record open / in_progress / blocked items, their impact, next steps, and evidence.
+Archive full evidence for closed items and retain necessary links.
 
-### `MEMORY.md`
+### Stable Design Documents
 
-`MEMORY.md` is current project memory, not a complete historical encyclopedia. It must include:
+Reuse existing documents first. Split them according to project complexity, covering at least:
 
-```md
-# MEMORY
+- System boundaries and module responsibilities;
+- Dependencies between layers and key call flows;
+- Data ownership, state, and consistency rules;
+- Interface and error contracts;
+- Test strategy and release conditions.
 
-Last updated: YYYY-MM-DD HH:MM <timezone>
+These may live in a single architecture document; do not require a separate file for every topic.
+For major or hard-to-reverse decisions, write a short ADR:
+context, choice, rationale, costs, and conditions for reconsideration.
 
-## Current Phase
+Clearly distinguish the current state, target state, and migration plan.
 
-## Completed Items
+### Coding Standards
 
-## AI Engineering Status Checklist
+Keep them short, concrete, and checkable.
+Specify where code belongs, which dependencies are forbidden, and how to verify compliance.
+Avoid vague requirements such as “maintain high cohesion” that cannot be executed directly.
 
-## Follow-up Suggestions
+The existence of a documentation directory does not mean tools will load it automatically.
+AGENTS.md and tool entry points must specify when to read each resource.
+Editor adapters reference the authoritative source instead of copying the full rules;
+generate only formats confirmed to be supported by the current tools.
 
-## Pending Confirmation
+## 7. Workflow for Every Subsequent Implementation
 
-## Change Log
-```
+Before changing anything:
 
-Requirements:
+1. Read relevant constraints and current work items.
+2. Reference the layering contract and state the business module, layer, target paths, and cross-layer calls involved. Establish ownership before choosing an implementation location; do not place logic in an entry point merely for convenience.
+3. Search for existing rules and implementations, and prioritize reuse.
+4. Assess effects on interfaces, persistence, state, permissions, and recovery.
+5. Define the acceptance method.
 
-- The current phase must be based on the real project state.
-- Prefer keeping it under 100 lines. Archive old history to `.ai/docs/changelog.md` or `.ai/docs/archive/` when it grows too long.
-- Change log entries use one line:
+During implementation:
 
-```text
-- YYYY-MM-DD HH:MM | <model-name> | <one-sentence summary of this change>
-```
+- Fix the responsibility or logic causing the error instead of unconditionally adding fallback branches.
+- Do not duplicate existing business rules in another layer.
+- Do not use defaults to hide missing data, failures, or unknown states.
+- Do not manufacture success by weakening tests or swallowing errors.
+- Do not perform broad refactoring of unrelated modules as a side task.
+- Do not introduce unauthorized compatibility mechanisms or new infrastructure.
 
-- Use local timezone and minute precision.
-- Keep descriptions under 80 characters.
-- Mark uncertain content with `<!-- TBD -->`.
+If an architecture boundary really needs to change:
+explain why and what it affects, and update decisions and tests together.
+Submit a concrete proposal first when the change involves data destruction,
+major changes to business semantics, or an expansion of authorization scope.
 
-### `AI_BOARD.md`
+After implementation:
 
-`AI_BOARD.md` is the only active collaboration board. It must include:
+- Run verification appropriate to the risk;
+- Check callers and other entry points, plus new dependencies, layer bypasses, circular dependencies, duplicated rules, and data ownership;
+- Update changed contracts and necessary documentation;
+- Report passes, failures, checks not run, and remaining risks.
 
-```md
-# AI Collaboration Board
+Choose roles according to the actual task; a role does not require launching multiple agents
+or automatically grant permission for external operations.
 
-## File Model
+## 8. Use Tests to Verify the Design
 
-## AI Identities
+Establish tests according to risk:
 
-## Active Board
+- Pure business rule tests;
+- Business use case and state transition tests;
+- Database transaction and concurrency integration tests;
+- External protocol contract tests;
+- Critical user workflow tests;
+- Failure recovery and permission tests.
 
-## Board Rules
+When asynchronous processing or device control is involved, cover:
+duplicate requests, timeouts, out-of-order events, disconnections, partial success,
+process interruption, and data consistency after recovery.
 
-## Activity Log Format
+For critical boundaries maintained by AI,
+use lint, dependency checks, type checks, or automated tests wherever possible;
+do not rely solely on AI reading documentation and voluntarily following it.
 
-## Activity Log
-```
+For every verification, distinguish:
+unit tests, simulated integration, real environments, and manual acceptance.
+A simulation passing must not be reported as a real device or on-site verification passing.
 
-Active Board table format:
+Test records should include:
+case, version or commit, environment, expected result, actual result, and evidence.
+Checks not run or blocked must not count as passes.
 
-```md
-| ID | Owner | Type | Status | Item | Next Action |
-| --- | --- | --- | --- | --- | --- |
-```
-
-Valid identities:
-
-| Identity | Owner | Scope | Boundary |
-| --- | --- | --- | --- |
-| Frontend AI | `frontend-ai` | Frontend UI, Wails/IPC call wrappers, trilingual copy, visuals, and interactions. | Does not implement sync core; does not directly access RabbitMQ/MySQL/HTTP. |
-| Backend AI | `backend-ai` | Backend, services, sync core, config, DTOs, installers, MCP. | Frontend-visible API/DTO/error semantic changes must be written to the board. |
-| Test AI | `test-ai` | Unit tests, smoke, E2E, lab, load tests, release-gate evidence. | Does not change product behavior by default; test fixture fixes must state scope. |
-| Review AI | `review-ai` | Architecture review, launch assessment, risk list, cross-module adjustments. | List risks and gaps first; cross-identity edits must state reason and impact. |
+Unrelated changes do not require repeatedly running the entire test suite.
+Major business, persistence, concurrency, and release changes must pass the corresponding full gates.
 
-Board Rules must include:
+## 9. Prevent Architectural Drift
 
-1. Declare identity before starting, then read Active Board.
-2. New issues must be added to Active Board and assigned a valid `Owner`.
-3. When resolved, change status to `closed` and append Activity Log.
-4. When blocked, change status to `blocked` and state what is missing.
-5. For API, DTO, error semantics, or page-scope changes, update Active Board first, then sync stable contract docs.
-6. `test-ai` must record validation commands, pass/fail results, and reasons for skipped runs.
-7. `review-ai` must list risks, gaps, and blockers first.
-8. Final replies must state identity, handled Board items, and remaining open/blocked items.
-9. When closed history grows too long, `review-ai` archives it to `.ai/docs/archive/` or a phase summary.
+The following trigger a targeted review, not an automatic comprehensive refactor:
 
-Activity Log format:
-
-```text
-- YYYY-MM-DD HH:mm | <frontend-ai/backend-ai/test-ai/review-ai> | <question/decision/answer/blocker/review/test> | <scope> | <open/closed/blocked>
-```
-
-## Step 5: Create or Maintain the `.ai/` Source-of-Truth Documentation System
+- The same rule must be changed in multiple places;
+- Fixing one issue frequently breaks another entry point;
+- Modules develop circular dependencies;
+- Pages or routes keep accumulating business workflows;
+- Testing one rule requires starting the entire system;
+- A new protocol forces general business modules to recognize vendor details;
+- One file contains responsibilities that change for several unrelated reasons.
 
-Required directories:
+Line counts are a signal, not a mechanical criterion for splitting files.
 
-```text
-.ai/
-  instructions/
-  docs/
-    archive/
-  skills/
-  agents/
-  prompts/
-```
+The review should state:
+the actual problem, impact, smallest adjustment, and regression verification method.
+Prefer small steps that preserve behavior; avoid large simultaneous structural and functional changes.
 
-Every directory must have a `README.md` explaining:
+## 10. First-Round Output
 
-- Directory purpose
-- File naming conventions
-- When to create new files
-- When not to create new files
-
-Required files:
+First provide:
 
-```text
-.ai/instructions/ai-workflow.md
-.ai/docs/README.md
-.ai/skills/README.md
-.ai/agents/README.md
-.ai/prompts/README.md
-```
+1. Project understanding and key assumptions.
+2. Current structure and evidence; explicitly state when a new project has no implementation yet.
+3. Recommended architecture and reasons for not choosing a more complex approach.
+4. The layering contract: module and layer responsibilities, actual or planned paths, public contracts, allowed and forbidden dependencies, state ownership, verification methods, and reasons for merging or omitting layers.
+5. Two core workflows.
+6. Key risks, constraints, and test methods.
+7. The minimum list of documents to create or update.
+8. A small number of key questions requiring user decisions.
 
-Create as needed:
-
-```text
-.ai/instructions/<domain>.md
-.ai/docs/<topic>.md
-.ai/skills/<skill-name>/SKILL.md
-.ai/agents/<name>.agent.md
-.ai/prompts/<name>.prompt.md
-```
-
-As-needed files must be backed by project evidence. Do not create hollow files just to fill structure.
-
-### `.ai/instructions/*.md`
-
-Must have frontmatter:
-
-```yaml
----
-description: "Use when: trigger keyword description"
-applyTo: "glob pattern"
----
-```
-
-Requirements:
-
-- One file handles one concern, such as backend, frontend, API, testing, or sync architecture.
-- Keep content short and actionable.
-- Do not copy the project summary from `AGENTS.md`.
-- Must explain the relationship with `MEMORY.md` and `AI_BOARD.md`.
-- Frontend, backend, test, or review collaboration instructions must require reading root `AI_BOARD.md`.
-
-### `.ai/docs/*.md`
-
-Purpose:
-
-- Stable design documents
-- Architecture notes
-- API contracts
-- Phase summaries
-- Closed records
-- Archive materials
-
-Prohibited:
-
-- Do not create an active board under `.ai/docs/`.
-- Do not maintain open/blocked work items under `.ai/docs/`.
-- Move invalidated content into `.ai/docs/archive/`.
-
-### `.ai/skills/<skill-name>/SKILL.md`
-
-Must have frontmatter:
-
-```yaml
----
-name: skill-name
-description: "Use when: keyword-rich trigger description"
-argument-hint: "input hint"
----
-```
-
-Create a skill only when all conditions are met:
-
-- The project has a repeated operation that appears 3+ times.
-- Inputs and outputs are clear.
-- Steps are stable and reproducible.
-- It contains project-specific constraints.
-- It can be reused for future similar tasks.
-
-Do not create generic hollow skills such as "read code" or "fix bug".
-
-### `.ai/agents/<name>.agent.md`
-
-Must have frontmatter:
-
-```yaml
----
-description: "Use when: trigger description"
-name: "agent-name"
-tools: [read, search]
----
-```
-
-Requirements:
-
-- Create at least one read-only review Agent.
-- Define role, responsibilities, boundaries, and what it does not do.
-- Use the minimum necessary tool set.
-- Review Agents are read-only by default.
-- If an Agent relates to the identity model, it must correspond to `frontend-ai`, `backend-ai`, `test-ai`, or `review-ai`.
-
-### `.ai/prompts/<name>.prompt.md`
-
-Must have frontmatter:
-
-```yaml
----
-description: "One-sentence purpose"
-agent: "agent"
-tools: [read, edit, search]
----
-```
-
-Requirements:
-
-- Use Markdown links to reference related instructions / skills / agents.
-- Create prompts for the project's 3 to 5 most common operations.
-- Do not create low-value prompts just to fill a quota.
-- If the project has few scenarios, fewer than 3 prompts is acceptable.
-- Identity entry prompts should require declaring identity first and reading `AI_BOARD.md`.
-
-## Step 6: Deep-Review Workflow
-
-Do not create the deep-review workflow by default. Create it incrementally only when the user explicitly says "enable review workflow", "add deep review", `/review`, "create deep-review Agent", or equivalent trigger phrases:
-
-```text
-.ai/agents/deep-review.agent.md
-.ai/prompts/deep-review.prompt.md
-tests/README.md or an ai-review note under the existing test directory
-## Review Log section in MEMORY.md
-```
-
-The deep-review Agent's minimum tools are `[read, search, edit, run]`, and its loop is fixed:
-
-1. Review: output issue list based on `.ai/instructions/`, `AI_BOARD.md`, and recent diff.
-2. Add tests: add tests for uncovered critical paths; do not write empty tests.
-3. Run tests: run project test commands and record failures.
-4. Fix failures: minimally fix failures; never delete or skip tests to manufacture a pass.
-5. Review again: return to review until two consecutive rounds have no new issues and all tests pass.
-
-At the end of each round, append to `MEMORY.md` `## Review Log`:
-
-```text
-- YYYY-MM-DD HH:MM | <model-name> | round <N> | <one-sentence summary and conclusion: pass / continue next round>
-```
-
-## Step 7: Editor Adapter Layers
-
-`.ai/` is the source of truth. Editor adapter layers are thin entries only and must not copy full standards.
-
-### Copilot
-
-Create or maintain:
-
-```text
-.github/copilot-instructions.md
-.github/instructions/*.instructions.md
-```
-
-`.github/copilot-instructions.md`:
-
-- 10 to 20 lines.
-- Only write the core entry.
-- Must require reading `AGENTS.md` first.
-- Must mention `MEMORY.md` and `AI_BOARD.md`.
-- Must not copy full standards.
-
-`.github/instructions/*.instructions.md`:
-
-- Create only 2 to 4 adapters for core `.ai/instructions/*.md`.
-- Must have frontmatter:
-
-```yaml
----
-applyTo: "glob pattern"
----
-```
-
-- Body only states which source files to read and 2 to 4 hard rules.
-
-### Cursor
-
-Create or maintain:
-
-```text
-.cursor/rules/00-core.mdc
-.cursor/rules/<domain>.mdc
-```
-
-`00-core.mdc`:
-
-- `alwaysApply: true`
-- `globs: ["**/*"]`
-- Only write the entry, not full standards.
-
-Domain rules:
-
-- `alwaysApply: false`
-- `globs` matches the corresponding `.ai/instructions/*.md` `applyTo`.
-- Only write source links and a few hard rules.
-
-### Codex
-
-Codex natively reads root `AGENTS.md`; no extra adapter file is needed.
-
-### Trae
-
-Trae reuses `AGENTS.md` and the `.ai/` source by default. Create a thin Trae entry only if the project already has a native Trae rules directory or the user explicitly asks for one.
-
-Trae adapter rules:
-
-- If a native Trae rules directory exists, preserve its structure and add only source links.
-- If the Trae rules path cannot be confirmed, mark `<!-- TBD -->` and do not invent a directory.
-- The Trae adapter layer must not copy full standards.
-- The Trae adapter layer must not create a second active board.
-
-## Step 8: Old Board Migration
-
-If an old active board is found at:
-
-```text
-.ai/docs/ai-collaboration-log.md
-```
-
-Handle it as follows:
-
-- Migrate still-valid open/blocked items into root `AI_BOARD.md`.
-- Keep only a migration notice in the old file.
-- State clearly: do not add new open/blocked items to the old file.
-- Update all guides to point to root `AI_BOARD.md`.
-
-Old file content example:
-
-```md
-# AI Collaboration Board moved
-
-This file is no longer the active board. The active AI collaboration board has moved to the repository root:
-
-AI_BOARD.md
-
-Rules:
-- `AI_BOARD.md` is the only active board.
-- `.ai/docs/` only stores stable docs, closed records, and archive materials.
-- Do not add open/blocked items to this file.
-```
-
-## Step 9: Safe Write Rules
-
-- Prefer merging existing files. Do not blindly overwrite.
-- If original content conflicts with current analysis, preserve it and mark `<!-- TBD -->`.
-- Uncertain content must be explicitly marked `<!-- TBD -->`.
-- If similar docs already exist, link to them instead of duplicating large sections.
-- Do not create empty business documents.
-- Do not use build artifacts, caches, or generated code as current standards evidence.
-- When paths change, sync all references.
-- Adapter layers must always be shorter than the source files.
-- Do not create an active board that competes with `AI_BOARD.md`.
-
-## Step 10: Self-Check After Completion
-
-Format checks:
-
-- `AGENTS.md` exists and is under 300 lines.
-- `MEMORY.md` exists and has a last-updated timestamp.
-- `AI_BOARD.md` exists and is the only active board.
-- `.ai/` directory structure is complete.
-- Every README explains purpose and creation criteria.
-- instructions / skills / agents / prompts have correct frontmatter.
-- A skill's `name` matches its directory name.
-- descriptions use `Use when: ...`.
-- `.ai/docs/` has no active board.
-- `.ai/docs/ai-collaboration-log.md`, if present, is only a migration notice.
-- Copilot / Cursor / Trae adapter layers are entries only.
-- No references point to missing files.
-
-Content credibility checks:
-
-- Every instruction has project evidence.
-- Every skill corresponds to a real high-frequency workflow.
-- Every prompt references an existing instruction, skill, or agent.
-- Module breakdown matches actual directory structure and entry files.
-- All unconfirmed content is marked `<!-- TBD -->`.
-- Build artifacts, generated code, and legacy leftovers are not used as current standards evidence.
-
-Collaboration checks:
-
-- Active Board owners use only valid identities.
-- Active Board open/blocked items are clear.
-- Activity Log format is consistent.
-- Final reply states identity, handled Board items, and remaining open/blocked items.
-- Substantive changes have been written to `MEMORY.md`.
-- Collaboration, blockers, API, DTO, error semantics, or page-scope changes have updated `AI_BOARD.md`.
-
-Deep-review checks:
-
-- When deep review is not triggered, do not create `deep-review.agent.md`, `deep-review.prompt.md`, or review test directories.
-- When deep review is triggered, the review Agent, Prompt, test note, and `MEMORY.md ## Review Log` are all synced.
-
-## Completion Output
-
-Finally output:
-
-1. Judged project state: new / partially initialized / initialized.
-2. Created or updated file list.
-3. Current `AI_BOARD.md` open/blocked items.
-4. Self-check summary: passed and failed items.
-5. Pending confirmation summary.
-6. Follow-up suggestions.
+Initialize after user approval.
+At completion, check documentation links, effective rules, actual verification, and tool entry points.
+Check the layering contract's responsibilities, paths, dependencies, ownership, and verification methods item by item; identify anything not implemented or not verified;
+do not declare engineering readiness merely because the directory structure is complete.
