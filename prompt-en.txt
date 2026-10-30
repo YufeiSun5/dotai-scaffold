@@ -22,6 +22,7 @@ For new projects without source code, design from requirements and explicitly la
 
 Before starting, read existing AGENTS.md, MEMORY.md, AI_BOARD.md,
 README, build configuration, core source code, tests, and CI.
+If a feature map exists, read its index and the entries relevant to the current scope.
 
 Ignore dependency directories, caches, and generated artifacts; read lockfiles when needed to confirm dependency versions.
 
@@ -125,6 +126,8 @@ Explain why any layer is merged or omitted and which boundaries still apply; do 
 
 Store the effective contract in an existing architecture document or a single authoritative document under .ai/docs/.
 Put actionable prohibitions and checks in .ai/instructions/ with a reference to that contract.
+Link each critical constraint to an existing type, lint, dependency, test, or CI check where practical;
+add a minimal missing check only within the authorized scope, and label manual checks honestly.
 AGENTS.md, relevant task templates, and tool entry points must specify its path and reading triggers.
 Record implementation deviations and pending issues in work items; do not promote temporary bypasses into permanent rules.
 
@@ -217,6 +220,10 @@ Include project boundaries, technology stack, module navigation, key architectur
 required reading, verification commands, and operational boundaries.
 
 Do not copy complete design documents here.
+Reference the feature map's actual path: read its index when locating a capability,
+and read the relevant entries before changing or verifying user-facing behavior.
+Also name the actual project verification-contract path established or reused under section 8,
+and require reading the relevant procedure before running verification.
 
 ### MEMORY.md
 
@@ -229,6 +236,26 @@ AI_BOARD.md is authoritative for active issues; avoid maintaining multiple copie
 The sole active work board.
 Record open / in_progress / blocked items, their impact, next steps, and evidence.
 Archive full evidence for closed items and retain necessary links.
+
+### Parallel Work When Needed
+
+A work item's delivery and acceptance boundary does not limit it to one executor.
+When parallel work helps, keep the existing board as the task-level authority; record subtask details
+in the existing plan or work-item records, splitting files only when useful. This is not a second board.
+Assign one overall owner, with integration responsibility unless explicitly delegated in the plan.
+Record each subtask's ID, owner, dependencies, write scope, isolated workspace/runtime resources,
+status and next step, completion evidence, and handoff. A subtask's progress is not the overall task status.
+If subtasks share one record file, its designated writer updates it serially while workers submit separate events;
+use separate files when workers need to update their own records directly.
+
+Designate writers for shared requirements, contracts, board and memory summaries, and feature-map indexes or entries.
+Workers update only their assigned records and outputs and submit shared-document changes to the designated writer.
+In one shared workspace, a file has one writer at a time; handoff records the current revision, next action,
+and released resources before the successor takes over. Isolated branches may change the same logical file,
+but a named integrator resolves conflicts and verifies the integrated result. Separate branches or worktrees
+do not isolate running instances: also isolate ports, data, accounts, profiles, and output paths as needed;
+serialize use of resources that cannot be isolated. Coordinate shared-contract changes before dependent work proceeds.
+For single-executor work, omit subtask records and additional coordination roles.
 
 ### Stable Design Documents
 
@@ -246,6 +273,34 @@ context, choice, rationale, costs, and conditions for reconsideration.
 
 Clearly distinguish the current state, target state, and migration plan.
 
+### Feature Map: User Journeys and Verification Navigation
+
+Maintain a lightweight map of how users reach and use capabilities and how an agent can verify them.
+Start with 3–5 core features identifiable from routes, commands, menus, or documentation;
+use fewer if the project has fewer, and expand as work requires rather than documenting everything upfront.
+Reuse a section in existing documentation for small projects. When separate files become useful,
+use an index such as .ai/docs/feature-map/README.md with details split by feature as needed.
+Keep one maintained location for each journey; link an existing verification map instead of duplicating it.
+
+Each entry records:
+
+- User goal and capability, including relevant sub-features and alternative entry points.
+- Entry path and prerequisites: identity, permissions, configuration, data, and how to reach a usable starting state.
+- Actual steps and driving method: reuse existing verification scripts or harnesses first;
+  link the actual project document and subsection established or reused under section 8 for shared launch, readiness, instance isolation, and cleanup instructions, and give concrete commands or stable selectors where available.
+- Observable success: the action and resulting state, including relevant persisted or external effects;
+  an accepted request or a final screenshot alone may not prove completion.
+- Links to related implementation, authoritative business and layering contracts, and tests or acceptance procedures;
+  label missing implementation as planned rather than inventing paths or commands.
+- Evidence basis: distinguish source-inferred / pending live verification from behavior actually exercised,
+  linking to the version, environment, result, and evidence in verification records when available.
+
+The map is navigation and a maintained verification recipe, not a test result or a second business-rule source.
+Keep task status and test logs in their existing authoritative locations; reference them instead of copying them.
+For new projects, record intended journeys as planned; do not imply they already run.
+When journeys change, check the index and affected entries and links. Distinguish documentation drift,
+harness gaps, and product bugs; never weaken an expected journey or rewrite documentation to conceal a bug.
+
 ### Coding Standards
 
 Keep them short, concrete, and checkable.
@@ -261,11 +316,15 @@ generate only formats confirmed to be supported by the current tools.
 
 Before changing anything:
 
-1. Read relevant constraints and current work items.
+1. Read relevant constraints and current work items. Locate the affected feature-map entries, user entry points, and verification recipes; add or extend an entry when the capability is missing, without expanding into an unrelated inventory.
 2. Reference the layering contract and state the business module, layer, target paths, and cross-layer calls involved. Establish ownership before choosing an implementation location; do not place logic in an entry point merely for convenience.
 3. Search for existing rules and implementations, and prioritize reuse.
 4. Assess effects on interfaces, persistence, state, permissions, and recovery.
 5. Define the acceptance method.
+
+Before scaling parallel work that depends on the same verification setup, prove one minimal
+launch–drive–assert–capture–cleanup loop using section 8. If unavailable, identify the blocked checks;
+independent analysis or work that does not depend on that environment can continue.
 
 During implementation:
 
@@ -284,8 +343,11 @@ major changes to business semantics, or an expansion of authorization scope.
 After implementation:
 
 - Run verification appropriate to the risk;
+- Exercise the affected user journeys using their mapped entry points and driving methods, checking observable outcomes and relevant side effects. Record actual coverage and evidence in verification records; explain failures, unexecuted steps, and blockers without counting them as passes;
 - Check callers and other entry points, plus new dependencies, layer bypasses, circular dependencies, duplicated rules, and data ownership;
 - Update changed contracts and necessary documentation;
+- Update affected feature-map entries and index links to reflect confirmed journey or harness changes, preserving the distinction between source inference and live evidence;
+- For parallel work, the integrator verifies the affected contracts and user journeys on the integrated revision; separate branch passes do not establish integrated success. Route shared updates through their designated writers;
 - Report passes, failures, checks not run, and remaining risks.
 
 Choose roles according to the actual task; a role does not require launching multiple agents
@@ -310,13 +372,42 @@ For critical boundaries maintained by AI,
 use lint, dependency checks, type checks, or automated tests wherever possible;
 do not rely solely on AI reading documentation and voluntarily following it.
 
+### Verification Capability Contract
+
+Reuse the existing test strategy, acceptance procedure, or verification skill for the shared recipe;
+one short section can suffice. Do not require a new CLI, skill, service, or directory.
+Prefer existing tools for deterministic steps. Add a small helper only when useful and authorized,
+documenting its invocation, inputs/outputs, failure behavior, and cleanup.
+
+Cover the applicable parts of this loop:
+
+1. Launch: the documented command or operation, configuration, auth, data, and prerequisites for a usable state.
+2. Identify and check: confirm the intended instance, build/revision, and isolated resources; check readiness,
+   not only a running process or open port. Recheck after surprising behavior; reset or relaunch when needed.
+3. Drive: use the actual user entry and input path with concrete steps or stable handles.
+   Internal handlers or state assignments cannot substitute for that path. Mocks may isolate a real external boundary,
+   but must not skip the chain under test. An unsupported native input remains uncovered; a nearby path is not equivalent coverage.
+4. Assert: derive expected behavior from requirements or an independent contract, not from the implementation under test.
+   Check the resulting state and relevant persisted, file, data, or external effects; include reload/reopen/restart when relevant.
+5. Capture: preserve the action, result, assertions, and evidence links in verification records.
+6. Clean up: remove only instances and scratch state created by this run; preserve evidence and confirm it survives cleanup.
+
+Use the parts appropriate to the surface: a short-lived tool may need version, input, output, and exit checks
+instead of server readiness. Missing prerequisites or tools make the affected checks blocked or unexecuted;
+they do not authorize installation, external operations, or fabricated commands.
+The real-entry and chain-coverage requirements apply when claiming user-journey behavior.
+Unit tests may directly call internal logic or use suitable doubles; their results do not replace real journey acceptance.
+
 For every verification, distinguish:
 unit tests, simulated integration, real environments, and manual acceptance.
 A simulation passing must not be reported as a real device or on-site verification passing.
 
 Test records should include:
-case, version or commit, environment, expected result, actual result, and evidence.
+case, actual tested revision/build or working-tree fingerprint, instance and environment (including mocked boundaries),
+actual entry/input path, expected and actual results, relevant side effects, evidence, cleanup, and uncovered scope.
 Checks not run or blocked must not count as passes.
+Results belong to the tested object. After source, build, or integration changes, rerun affected checks;
+retain old evidence without presenting it as proof of the changed object.
 
 Unrelated changes do not require repeatedly running the entire test suite.
 Major business, persistence, concurrency, and release changes must pass the corresponding full gates.
@@ -332,12 +423,16 @@ The following trigger a targeted review, not an automatic comprehensive refactor
 - Testing one rule requires starting the entire system;
 - A new protocol forces general business modules to recognize vendor details;
 - One file contains responsibilities that change for several unrelated reasons.
+- The same failure repeatedly requires local patches, manual reminders, or duplicated setup.
 
 Line counts are a signal, not a mechanical criterion for splitting files.
 
 The review should state:
 the actual problem, impact, smallest adjustment, and regression verification method.
 Prefer small steps that preserve behavior; avoid large simultaneous structural and functional changes.
+For repeated failures, identify the shared cause and consider the smallest interface, type, boundary,
+tooling, or workflow improvement with a regression check. Implement only within the authorized scope;
+record broader changes as a concrete proposal, not permission for unlimited refactoring.
 
 ## 10. First-Round Output
 
@@ -347,12 +442,13 @@ First provide:
 2. Current structure and evidence; explicitly state when a new project has no implementation yet.
 3. Recommended architecture and reasons for not choosing a more complex approach.
 4. The layering contract: module and layer responsibilities, actual or planned paths, public contracts, allowed and forbidden dependencies, state ownership, verification methods, and reasons for merging or omitting layers.
-5. Two core workflows.
-6. Key risks, constraints, and test methods.
+5. Two core workflows, plus the initial core-feature map scope, location, driving methods, and evidence gaps.
+6. Key risks, constraints, test methods, verification-environment gaps, and ownership/isolation if parallel work is needed.
 7. The minimum list of documents to create or update.
 8. A small number of key questions requiring user decisions.
 
 Initialize after user approval.
 At completion, check documentation links, effective rules, actual verification, and tool entry points.
+Check the feature map's entries, index links, reading triggers, and evidence labels; map coverage does not imply that all journeys have passed live verification.
 Check the layering contract's responsibilities, paths, dependencies, ownership, and verification methods item by item; identify anything not implemented or not verified;
 do not declare engineering readiness merely because the directory structure is complete.
