@@ -108,7 +108,7 @@ All four prompts now use a lightweight feature map to help AI locate a capabilit
 
 4つのプロンプトに簡潔な機能マップを追加しました。AIが機能を探し、ユーザーと同じ操作で検証できるようにします。主要な3–5機能（少ない場合はそれ以下）から始め、既存の節を優先して再利用します。必要な場合だけ `.ai/docs/feature-map/README.md` のような索引と機能別の詳細に分割します。各項目は目的、入口と前提条件、実際の操作と駆動方法、関連する副作用を含む観測可能な成功結果、実装・契約・テストへのリンクを示します。既存のハーネスや検証マップを再利用し、ソースからの推定、予定の挙動、実動作の証拠を区別します。実行結果は検証記録またはタスクパッケージに残します。`AGENTS.md` に読む条件を定め、着手前に関連手順を特定し、完了後に実際に操作して検証範囲と阻害要因を報告し、関連項目とリンクを更新します。マップはテスト合格の証明でも、業務ルール・タスク状態・テストログの別の正本でもありません。文書のずれ、駆動ツールの不足、製品の不具合を区別し、不具合を隠すために手順を書き換えないでください。ソフトウェア以外では実際の利用・納品手順を扱い、UIやブラウザを強制しません。
 
-References / 参考 / 参考資料: Cursor pstack's [create-verification-skill](https://github.com/cursor/plugins/blob/main/pstack/skills/create-verification-skill/SKILL.md) and [maintain-verification-skill](https://github.com/cursor/plugins/blob/main/pstack/skills/maintain-verification-skill/SKILL.md). This repository adapts those published workflows to its own documentation model; it is not a transcript of Lauren's talk. / 本仓库将上述公开流程适配到自己的文档模型，不是 Lauren 演讲原话。 / 公開された手順を本リポジトリの文書モデルに適応したもので、Laurenの講演の書き起こしではありません。
+References / 参考 / 参考資料: Cursor pstack's [create-verification-skill](https://github.com/cursor/plugins/blob/4dd1d05818d19792e7cd6e818f1667f95f7e1dbe/pstack/skills/create-verification-skill/SKILL.md) and [maintain-verification-skill](https://github.com/cursor/plugins/blob/4dd1d05818d19792e7cd6e818f1667f95f7e1dbe/pstack/skills/maintain-verification-skill/SKILL.md). This repository adapts those published workflows to its own documentation model; it is not a transcript of Lauren's talk. / 本仓库将上述公开流程适配到自己的文档模型，不是 Lauren 演讲原话。 / 公開された手順を本リポジトリの文書モデルに適応したもので、Laurenの講演の書き起こしではありません。
 
 ## Verification and Parallel Work / 验证与并行协作 / 検証と並行作業
 
@@ -150,7 +150,19 @@ evidence / cleanup / uncovered: <action and assertion paths; owned-resource clea
 
 Prefer existing type, lint, dependency, test, CI, or production quality checks for critical constraints. Repeated failures trigger a targeted review of their shared cause and the smallest verifiable structural or tooling improvement, within authorization; they do not authorize unlimited refactoring. / 关键约束优先落到已有类型、lint、依赖、测试、CI 或生产质量检查；反复失败触发共因和最小可验证结构或工具改进的针对性审查，实施受授权范围约束，不自动授权无限重构。 / 重要な制約には既存の型・lint・依存・テスト・CI・制作上の品質検証を優先します。失敗が繰り返される場合は共通原因と最小限の検証可能な構造・ツールの改善を対象を絞って見直し、許可範囲内で実施します。無制限のリファクタリングは許可しません。
 
-Further references / 补充参考 / 追加参考: [pstack orchestration](https://github.com/cursor/plugins/blob/main/pstack/skills/poteto-mode/playbooks/orchestrate.md), [verification-skill-example](https://github.com/poteto/verification-skill-example/blob/main/README.md). The latter is fictional and omits its driver CLI; use it as a structural example, not an installable tool. / 后者是虚构示例，未附驱动 CLI，仅参考结构，不作为可安装工具。 / 後者は架空の例で駆動CLIを含みません。構造の参考であり、インストール可能なツールではありません。
+Further references / 补充参考 / 追加参考: [pstack orchestration](https://github.com/cursor/plugins/blob/4dd1d05818d19792e7cd6e818f1667f95f7e1dbe/pstack/skills/poteto-mode/playbooks/orchestrate.md), [verification-skill-example](https://github.com/poteto/verification-skill-example/blob/main/README.md). The latter is fictional and omits its driver CLI; use it as a structural example, not an installable tool. / 后者是虚构示例，未附驱动 CLI，仅参考结构，不作为可安装工具。 / 後者は架空の例で駆動CLIを含みません。構造の参考であり、インストール可能なツールではありません。
+
+## Selective Workflow Adoption / 选择性流程引入 / ワークフローの選択的導入
+
+The prompts now distinguish symptoms and hypotheses from proven causes, current mechanisms from historical rationale, and caller-facing contracts from implementation guesses. Consequential uncertainties may use bounded, isolated prototypes; simple work needs neither a long report nor multiple models. Changed verification helpers need their own success/failure/cleanup checks and usable help/errors; maintenance separates doc drift, harness gaps, and product regressions. Initialization inventories the host, existing rules/tools and actual gaps, then selects necessary upstream material rather than copying a whole repository. Download is distinct from installation/execution. Preserve rules and authorization, resolve transitive references and host differences, keep full applicable notices, and record immutable source versions, adaptations, checks and manual upgrade/rollback. Without access or tools, defer the affected item and use verified local capabilities.
+
+提示词补充了现象与假设不等于根因、当前机制与历史动机证据分开、从调用方示例反推契约；关键不确定性按需做有预算、停止条件和隔离的原型，简单任务不强制长报告或多模型。验证工具自身检查成功、失败和清理并提供可用帮助与错误信息；维护区分文档漂移、驱动缺口与产品回归。初始化识别宿主、已有规则工具和真实缺口后选择必要上游内容，不默认整库复制；下载与安装执行分开，保留规则和授权边界，核对传递依赖和宿主差异，保留完整适用许可，记录固定来源版本、本地适配、验证及人工升级回退。缺少来源或工具时暂缓受影响项目，复用已核实的本地能力。
+
+プロンプトは現象・仮説と確認した原因、現在の仕組みと過去の動機を区別し、利用例から契約を導きます。重要な不確実性には予算・終了条件・分離を定めた試作を使えますが、簡単な作業に長い報告や複数モデルは不要です。検証ツール自身の成功・失敗・終了処理、ヘルプとエラーを確認し、保守では文書のずれ、駆動ツール不足、製品の回帰を区別します。初期化ではホストと既存ルール・ツール・不足を確認して必要な上流資料だけを選び、全体を既定で複製しません。取得とインストール・実行を分け、既存ルールと権限、間接依存、ホスト差異、ライセンス全文を確認し、固定した出典、適応、検証、手動更新・復元を記録します。資料やツールがなければ該当部分を延期し、確認済みのローカル機能を使います。
+
+Optional reusable asset / 可选复用资产 / 任意の再利用資料: [pstack adoption worksheet and full MIT notice](references/pstack-adoption.md). It contains a usable selection procedure and provenance-record template, with no runtime dependency, installer, or upstream executable code. / 含可直接使用的选择流程和来源记录模板，无运行依赖、安装器或上游可执行代码。 / 選択手順と出典記録テンプレートを含み、実行依存・インストーラ・上流の実行コードはありません。
+
+Reviewed pstack source / 已审阅来源 / 確認済み出典: [cursor/plugins at 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe](https://github.com/cursor/plugins/tree/4dd1d05818d19792e7cd6e818f1667f95f7e1dbe/pstack), MIT © 2026 Lauren Tan. This is a selective local adaptation, not a claim that pstack is installed or its Cursor workflows run unchanged. / 这是选择性本地适配，不宣称已安装 pstack 或可原样运行其 Cursor 流程。 / 選択的な適応であり、pstack導入済みやCursor手順の無変更での実行を意味しません。
 
 ## Tool Integration / 工具接入 / ツール連携
 
@@ -171,3 +183,7 @@ Check documentation links, effective rules, implementation or planned locations 
 ## License
 
 [MIT](LICENSE)
+
+Adapted pstack material also retains [Lauren Tan's MIT notice and pinned provenance](references/pstack-adoption.md#upstream-license-notice). / pstack 适配内容另保留 Lauren Tan 的完整 MIT 通知与固定版本来源。 / pstackの適応内容にはLauren TanのMIT通知と固定した出典も保持します。
+
+When redistributing substantial adapted material, including standalone prompts, include that full notice with it; a source link alone is insufficient. / 单独分发提示词等实质适配内容时，也随附该完整通知，不能只留来源链接。 / プロンプト単体など実質的な適応内容を再配布する場合も、出典リンクだけでなく通知全文を添付してください。

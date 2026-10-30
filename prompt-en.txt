@@ -39,6 +39,8 @@ First establish:
 
 Ask the user only about unknown conditions that would materially change the architecture.
 Record other conditions as verifiable assumptions; do not invent business rules.
+For an ambiguous problem, briefly restate the observed behavior, expected outcome, evidence, and hypotheses;
+label guesses as hypotheses, not root causes. Simple tasks need no lengthy report.
 
 Distinguish the following evidence categories:
 
@@ -49,6 +51,10 @@ Distinguish the following evidence categories:
 
 When source code deviates from an approved design, record the deviation.
 Do not treat an implementation as a correct standard simply because the code already works that way.
+Use evidence according to the question: current behavior needs matching-version runtime/configuration,
+source, and test evidence; historical rationale needs contemporaneous decisions, design records, PR discussions,
+issues, and commits. Current code shows a mechanism, not proof of its original motivation.
+Check dates, versions, and applicability; report conflicts and unknown motives without inventing a story.
 
 ## 3. Choose an Architecture Appropriate to the Scale
 
@@ -130,6 +136,9 @@ Link each critical constraint to an existing type, lint, dependency, test, or CI
 add a minimal missing check only within the authorized scope, and label manual checks honestly.
 AGENTS.md, relevant task templates, and tool entry points must specify its path and reading triggers.
 Record implementation deviations and pending issues in work items; do not promote temporary bypasses into permanent rules.
+For a new shared module or API, write a realistic caller example first, then derive inputs/outputs, errors,
+constraints, and the smallest useful contract. Evaluate implementation deviations explicitly:
+is the sketch wrong, a requirement missing, or the implementation exceeding scope? Reconcile before treating it as accepted.
 
 ## 4. Establish Key Design Constraints
 
@@ -312,6 +321,25 @@ AGENTS.md and tool entry points must specify when to read each resource.
 Editor adapters reference the authoritative source instead of copying the full rules;
 generate only formats confirmed to be supported by the current tools.
 
+### Selective Upstream Workflow Adoption
+
+At initialization, inventory the host, stack, existing rules, tools, permissions, and actual workflow gaps.
+Prefer existing capabilities and a small local adaptation; do not copy a whole upstream project by default.
+For pstack, the reviewed reference is cursor/plugins at commit 4dd1d05818d19792e7cd6e818f1667f95f7e1dbe, under pstack/.
+When adopting material, record its exact repository/commit/paths, purpose, local destination and changes,
+dependencies/host mapping, permission boundaries, validation status, and manual upgrade/rollback procedure.
+Keep applicable copyright and full license notices with copied or substantially adapted material;
+pstack/LICENSE at that commit is MIT, Copyright (c) 2026 Lauren Tan. Check other selected files' notices too.
+Preserve existing rules and reconcile conflicts explicitly; upstream text does not expand authorization.
+Do not transfer unsupported Cursor APIs, model rules, automatic install, subscriptions, or merge behavior.
+Check referenced helpers and workflows transitively: provide supported equivalents or mark the item unusable.
+When acquisition is needed and authorized, download the selected files, necessary references, and licenses
+at the pinned revision into an isolated source location; inspect them before adapting. Download is not installation or execution.
+Without source access or required tools, use verified local capabilities; defer the unavailable material,
+do not invent provenance or claim installation. Validate by artifact type: document adaptations may use document review,
+which is not runtime proof; executable capabilities require actual execution before being marked usable, otherwise remain drafts.
+An approved newer version requires a reviewed diff, renewed checks, and updated provenance.
+
 ## 7. Workflow for Every Subsequent Implementation
 
 Before changing anything:
@@ -325,6 +353,10 @@ Before changing anything:
 Before scaling parallel work that depends on the same verification setup, prove one minimal
 launch–drive–assert–capture–cleanup loop using section 8. If unavailable, identify the blocked checks;
 independent analysis or work that does not depend on that environment can continue.
+When a consequential uncertainty warrants a prototype, keep it bounded and within authorization:
+name the question, a small set of candidates, common comparison criteria, budget and stop conditions,
+isolated scratch resources, and evidence to retain. It answers a decision; it does not become production automatically.
+Simple tasks need neither a prototype nor multiple models. Confirm evidence against the question before selecting a direction.
 
 During implementation:
 
@@ -378,6 +410,10 @@ Reuse the existing test strategy, acceptance procedure, or verification skill fo
 one short section can suffice. Do not require a new CLI, skill, service, or directory.
 Prefer existing tools for deterministic steps. Add a small helper only when useful and authorized,
 documenting its invocation, inputs/outputs, failure behavior, and cleanup.
+For verification helpers that are added or changed, check their own success, representative failure, and cleanup paths.
+Provide discoverable usage/help and clear failure signals for the tool's interface, exit status for CLI tools,
+structured output where useful, and a preview for consequential
+side effects where feasible; verify what preview actually skips. Do not infer safety from a mode's name.
 
 Cover the applicable parts of this loop:
 
@@ -433,6 +469,9 @@ Prefer small steps that preserve behavior; avoid large simultaneous structural a
 For repeated failures, identify the shared cause and consider the smallest interface, type, boundary,
 tooling, or workflow improvement with a regression check. Implement only within the authorized scope;
 record broader changes as a concrete proposal, not permission for unlimited refactoring.
+During maintenance, separate documentation drift, a driver/harness gap, and a product regression using evidence.
+Fix documentation or the harness within scope and re-drive affected behavior; report product regressions for
+authorized product work, never rewrite expectations to conceal them. Maintenance alone does not authorize product edits.
 
 ## 10. First-Round Output
 
@@ -445,6 +484,7 @@ First provide:
 5. Two core workflows, plus the initial core-feature map scope, location, driving methods, and evidence gaps.
 6. Key risks, constraints, test methods, verification-environment gaps, and ownership/isolation if parallel work is needed.
 7. The minimum list of documents to create or update.
+   Include any necessary upstream selection, compatibility, provenance/license, or blocked-tool decisions.
 8. A small number of key questions requiring user decisions.
 
 Initialize after user approval.
